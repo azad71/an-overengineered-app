@@ -35,7 +35,3 @@ type UserModel struct {
 	UserTimezone  *string       `gorm:"size:100;column:user_timezone"`
 	Description   *string       `gorm:"type:text"`
 }
-
-func SayHello() string {
-	return "HELLO"
-}
