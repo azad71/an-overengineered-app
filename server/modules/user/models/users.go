@@ -20,7 +20,7 @@ const (
 	Others Gender = "OTHERS"
 )
 
-type UserModel struct {
+type User struct {
 	gorm.Model
 	Username      string        `gorm:"unique;NOT NULL;size:50"`
 	Password      string        `gorm:"size:250;NOT NULL"`
@@ -34,4 +34,28 @@ type UserModel struct {
 	Address       *string       `gorm:"size:1000"`
 	UserTimezone  *string       `gorm:"size:100;column:user_timezone"`
 	Description   *string       `gorm:"type:text"`
+}
+
+type UserPayload struct {
+	ID            uint          `json:"id"`
+	Username      string        `json:"username"`
+	Email         string        `json:"emal"`
+	FirstName     *string       `json:"firstName"`
+	LastName      *string       `json:"lastName"`
+	AccountStatus AccountStatus `json:"accountStatus"`
+	Avatar        *string       `json:"avatar"`
+	UserTimezone  *string       `json:"userTimezone"`
+}
+
+func (user *User) Sanitize() UserPayload {
+	return UserPayload{
+		ID:            user.ID,
+		Username:      user.Username,
+		Email:         user.Email,
+		FirstName:     user.FirstName,
+		LastName:      user.LastName,
+		AccountStatus: user.AccountStatus,
+		Avatar:        user.Avatar,
+		UserTimezone:  user.UserTimezone,
+	}
 }

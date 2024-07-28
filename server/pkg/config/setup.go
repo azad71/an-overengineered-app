@@ -34,19 +34,19 @@ func mapTo(section string, v interface{}) {
 	}
 }
 
-var db *gorm.DB
+var DBInstance *gorm.DB
 
 func SetupDB() {
 	fmt.Println("Connecting to Database...")
 	var err error
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable", DBConfig.Host, DBConfig.User, DBConfig.Password, DBConfig.Name, DBConfig.Port)
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	DBInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		log.Panicf("Failed to connect to db, err: %v", err)
 	}
 
-	conn, err := db.DB()
+	conn, err := DBInstance.DB()
 
 	if err != nil {
 		log.Panicf("Failed to open connection, err: %v", err)

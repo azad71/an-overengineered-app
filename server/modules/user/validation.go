@@ -2,7 +2,6 @@ package users
 
 import (
 	users "an-overengineered-social-media-app/modules/user/models"
-	"fmt"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -17,7 +16,7 @@ type SignupBody struct {
 	BirthDate    *string       `json:"birthDate" binding:"omitempty,validateBirthDate"`
 	Gender       *users.Gender `json:"gender" binding:"omitempty,oneof= MALE FEMALE OTHERS"`
 	Address      *string       `json:"address" binding:"omitempty,max=1000"`
-	UserTimezone *string       `json:"userTimezone" binding:"omitempty"`
+	UserTimezone *string       `json:"userTimezone" binding:"required"`
 	Description  *string       `json:"description" binding:"omitempty,max=5000"`
 }
 
@@ -31,6 +30,5 @@ func ValidateBirthDate(data validator.FieldLevel) bool {
 
 	minDate := time.Date(time.Now().Year()-12, time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.UTC)
 
-	fmt.Println(minDate)
 	return value.Before(minDate)
 }
