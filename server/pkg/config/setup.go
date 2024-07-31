@@ -23,6 +23,7 @@ func SetupServerConfig() {
 	mapTo("app", AppConfig)
 	mapTo("database", DBConfig)
 	mapTo("redis", RedisConfig)
+	mapTo("email", EmailConfig)
 
 }
 
@@ -40,7 +41,9 @@ func SetupDB() {
 	fmt.Println("Connecting to Database...")
 	var err error
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable", DBConfig.Host, DBConfig.User, DBConfig.Password, DBConfig.Name, DBConfig.Port)
-	DBInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	DBInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+		SkipDefaultTransaction: true,
+	})
 
 	if err != nil {
 		log.Panicf("Failed to connect to db, err: %v", err)

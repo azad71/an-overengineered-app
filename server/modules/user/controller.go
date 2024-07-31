@@ -2,7 +2,9 @@ package users
 
 import (
 	users "an-overengineered-social-media-app/modules/user/models"
+	"an-overengineered-social-media-app/pkg/config"
 	"an-overengineered-social-media-app/pkg/helpers"
+	"an-overengineered-social-media-app/pkg/mailer"
 	"net/http"
 	"time"
 
@@ -11,15 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Things to do
-/**
-1. Validate body
-2. Check if email or username already exists
-3. Hash the password
-4. Save  user to DB
-5. Send mail
-6. Send response to client
-*/
 func SignupUser(c *gin.Context) {
 
 	var userData SignupBody
@@ -90,9 +83,27 @@ func SignupUser(c *gin.Context) {
 		Description:  userData.Description,
 	}
 
-	err = CreateUser(&newUserData)
+	tx := config.DBInstance.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Something went wrong",
+			"errors":  gin.H{},
+			"data":    gin.H{},
+		})
+		return
+	}
+
+	err = CreateUser(&newUserData, tx)
 
 	if err != nil {
+		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Failed to create new user",
 			"errors":  gin.H{},
@@ -101,12 +112,59 @@ func SignupUser(c *gin.Context) {
 		return
 	}
 
-	userPayload := newUserData.Sanitize()
+	otp, err := helpers.GenerateOTP(8)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Something went wrong",
+			"errors":  gin.H{},
+			"data":    gin.H{},
+		})
+		return
+	}
+
+	newOtpData := users.OtpCodes{
+		Otp:        otp,
+		Username:   newUserData.Username,
+		Email:      newUserData.Email,
+		OtpType:    "SIGNUP",
+		RetryCount: 0,
+	}
+
+	err = CreateOTP(&newOtpData, tx)
+
+	if err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Something went wrong",
+			"errors":  gin.H{},
+			"data":    gin.H{},
+		})
+		return
+	}
+
+	mailContent := mailer.GetSignupContent(otp)
+
+	err = mailer.SendMail([]string{newUserData.Email}, []byte(mailContent), "auth")
+
+	if err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Something went wrong",
+			"errors":  gin.H{},
+			"data":    gin.H{},
+		})
+		return
+	}
+
+	tx.Commit()
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Successfully signed up",
+		"message": "An OTP sent to your mail. Please verify your account to continue",
 		"data": gin.H{
-			"user": userPayload,
+			"expiresIn":    5,
+			"timeUnit":     "minutes",
+			"maximumRetry": 3,
 		},
 		"errors": gin.H{},
 	})

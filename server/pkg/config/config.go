@@ -28,3 +28,12 @@ type Redis struct {
 }
 
 var RedisConfig = &Redis{}
+
+type Email struct {
+	From       string
+	SMTPServer string
+	Port       int
+	Password   string
+}
+
+var EmailConfig = &Email{}

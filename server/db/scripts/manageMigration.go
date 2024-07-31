@@ -41,6 +41,13 @@ func main() {
 		fmt.Printf("%s migration successfully created", migrationName)
 
 	case "up":
+		err := runMigration(actionValue)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		fmt.Println("Migration successfully synced up with database")
 	case "down":
 		err := runMigration(actionValue)
 		if err != nil {
@@ -48,7 +55,7 @@ func main() {
 			return
 		}
 
-		fmt.Println("Migration successfully synced with database")
+		fmt.Println("Migration downed successfully")
 
 	default:
 		fmt.Println("Invalid action type")
