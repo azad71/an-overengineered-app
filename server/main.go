@@ -1,8 +1,8 @@
 package main
 
 import (
+	"an-overengineered-social-media-app/internal/config"
 	users "an-overengineered-social-media-app/modules/user"
-	"an-overengineered-social-media-app/pkg/config"
 	"fmt"
 	"log"
 	"net/http"

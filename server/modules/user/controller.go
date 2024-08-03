@@ -1,9 +1,9 @@
 package users
 
 import (
-	"an-overengineered-social-media-app/pkg/config"
-	"an-overengineered-social-media-app/pkg/helpers"
-	"an-overengineered-social-media-app/pkg/httpError"
+	"an-overengineered-social-media-app/internal/config"
+	"an-overengineered-social-media-app/internal/helpers"
+	"an-overengineered-social-media-app/internal/httpError"
 
 	"net/http"
 

@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"an-overengineered-social-media-app/pkg/httpError"
+	"an-overengineered-social-media-app/internal/httpError"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

@@ -1,8 +1,8 @@
 package users
 
 import (
+	"an-overengineered-social-media-app/internal/config"
 	users "an-overengineered-social-media-app/modules/user/models"
-	"an-overengineered-social-media-app/pkg/config"
 	"fmt"
 
 	"gorm.io/gorm"

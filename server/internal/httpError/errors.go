@@ -1,7 +1,7 @@
 package httpError
 
 import (
-	"an-overengineered-social-media-app/pkg/helpers"
+	"an-overengineered-social-media-app/internal/helpers"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"

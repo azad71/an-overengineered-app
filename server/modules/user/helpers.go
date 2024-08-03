@@ -1,8 +1,8 @@
 package users
 
 import (
+	"an-overengineered-social-media-app/internal/mailer"
 	users "an-overengineered-social-media-app/modules/user/models"
-	"an-overengineered-social-media-app/pkg/mailer"
 	"time"
 )
 
