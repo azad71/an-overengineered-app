@@ -1,102 +1,64 @@
 package users
 
 import (
-	users "an-overengineered-social-media-app/modules/user/models"
 	"an-overengineered-social-media-app/pkg/config"
 	"an-overengineered-social-media-app/pkg/helpers"
-	"an-overengineered-social-media-app/pkg/mailer"
+	"an-overengineered-social-media-app/pkg/httpError"
+
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SignupUser(c *gin.Context) {
+func SignupUser(ctx *gin.Context) {
 
 	var userData SignupBody
 
-	if err := c.ShouldBindJSON(&userData); err != nil {
+	if err := ctx.ShouldBindJSON(&userData); err != nil {
 		if errs, ok := err.(validator.ValidationErrors); ok {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"message": "Invalid request data",
-				"errors":  helpers.FormatValidationError(errs),
-				"data":    gin.H{},
-			})
+			ctx.Error(httpError.ValidationError("", errs))
 			return
 		}
 
-		c.JSON(http.StatusBadRequest, gin.H{
-			"messsage": "Failed to parse request data",
-			"errors":   err.Error(),
-			"data":     gin.H{},
-		})
+		ctx.Error(httpError.BadRequestError("Failed to parse request data", nil))
 		return
 	}
 
 	isNewUser, err := IsEmailAndUsernameUnique(userData.Email, userData.Username)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Something went wrong",
-			"errors":  gin.H{},
-			"data":    gin.H{},
-		})
+		ctx.Error(httpError.InternerServerError("", nil))
 		return
 	}
 
 	if !isNewUser {
-		c.JSON(http.StatusConflict, gin.H{
-			"message": "Email/Username already exists!",
-			"errors": gin.H{
-				"email": "Email/Username already exists!",
-			},
-			"data": gin.H{},
-		})
+		ctx.Error(httpError.ConflictError("Email/Username already taken!", map[string]string{
+			"email": "Email/Username already taken!",
+		}))
 		return
 	}
 
-	hasshedPassword, err := bcrypt.GenerateFromPassword([]byte(userData.Password), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userData.Password), 10)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Something went wrong",
-			"errors":  gin.H{},
-			"data":    gin.H{},
-		})
+		ctx.Error(httpError.InternerServerError("", nil))
 		return
 	}
 
-	birthDate, _ := time.Parse("2006-01-02", *userData.BirthDate)
-
-	newUserData := users.User{
-		Username:     userData.Username,
-		Password:     string(hasshedPassword),
-		Email:        userData.Email,
-		FirstName:    userData.FirstName,
-		LastName:     userData.LastName,
-		BirthDate:    &birthDate,
-		Gender:       userData.Gender,
-		Address:      userData.Address,
-		UserTimezone: userData.UserTimezone,
-		Description:  userData.Description,
-	}
+	newUserData := BuildNewUserObj(userData, hashedPassword)
 
 	tx := config.DBInstance.Begin()
 
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		tx.Rollback()
+	// 	}
+	// }()
 
 	if err := tx.Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Something went wrong",
-			"errors":  gin.H{},
-			"data":    gin.H{},
-		})
+		ctx.Error(httpError.InternerServerError("", nil))
 		return
 	}
 
@@ -104,68 +66,45 @@ func SignupUser(c *gin.Context) {
 
 	if err != nil {
 		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to create new user",
-			"errors":  gin.H{},
-			"data":    gin.H{},
-		})
+		ctx.Error(httpError.InternerServerError("Failed to create new user", nil))
 		return
 	}
 
 	otp, err := helpers.GenerateOTP(8)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Something went wrong",
-			"errors":  gin.H{},
-			"data":    gin.H{},
-		})
+		ctx.Error(httpError.InternerServerError("", nil))
 		return
 	}
 
-	newOtpData := users.OtpCodes{
-		Otp:        otp,
-		Username:   newUserData.Username,
-		Email:      newUserData.Email,
-		OtpType:    "SIGNUP",
-		RetryCount: 0,
-	}
+	otpData := BuildOTPObj(otp, newUserData, "SIGNUP")
 
-	err = CreateOTP(&newOtpData, tx)
+	err = CreateOTP(&otpData, tx)
 
 	if err != nil {
 		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Something went wrong",
-			"errors":  gin.H{},
-			"data":    gin.H{},
-		})
+		ctx.Error(httpError.InternerServerError("", nil))
 		return
 	}
 
-	mailContent := mailer.GetSignupContent(otp)
-
-	err = mailer.SendMail([]string{newUserData.Email}, []byte(mailContent), "auth")
+	err = SendSignupMail(newUserData.Email, otp)
 
 	if err != nil {
 		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Something went wrong",
-			"errors":  gin.H{},
-			"data":    gin.H{},
-		})
+		ctx.Error(httpError.InternerServerError("", nil))
 		return
 	}
 
 	tx.Commit()
 
-	c.JSON(http.StatusOK, gin.H{
+	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "An OTP sent to your mail. Please verify your account to continue",
 		"data": gin.H{
 			"expiresIn":    5,
 			"timeUnit":     "minutes",
 			"maximumRetry": 3,
+			"email":        newUserData.Email,
+			"username":     newUserData.Username,
 		},
-		"errors": gin.H{},
 	})
 }
