@@ -3,36 +3,44 @@ package config
 import (
 	"fmt"
 	"log"
+	"os"
+	"strconv"
 	"time"
 
-	"github.com/go-ini/ini"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-var cfg *ini.File
-
 // Setup initialize the configuration instance
 func SetupServerConfig() {
-	var err error
-	cfg, err = ini.Load("config.dev.ini")
-	if err != nil {
-		log.Panicf("setting.Setup, fail to parse 'config.ini': %v", err)
-	}
 
-	mapTo("app", AppConfig)
-	mapTo("database", DBConfig)
-	mapTo("redis", RedisConfig)
-	mapTo("email", EmailConfig)
+	// Setup App Config
+	AppConfig.AppUrl = os.Getenv("APP_URL")
+	AppConfig.JwtSecret = os.Getenv("JWT_SECRET")
+	AppConfig.ENV = os.Getenv("ENV")
+	AppConfig.HttpPort, _ = strconv.Atoi(os.Getenv("HTTP_PORT"))
+	AppConfig.RunMode = os.Getenv("RUN_MODE")
 
-}
+	// Setup DB Config
+	DBConfig.Dialect = os.Getenv("DIALECT")
+	DBConfig.User = os.Getenv("DB_USER")
+	DBConfig.Password = os.Getenv("DB_PASSWORD")
+	DBConfig.Host = os.Getenv("DB_HOST")
+	DBConfig.Name = os.Getenv("DB_NAME")
+	DBConfig.Port, _ = strconv.Atoi(os.Getenv("DB_PORT"))
+	DBConfig.ConnMaxLifeTime, _ = strconv.Atoi(os.Getenv("DB_CONN_MAX_LIFE_TIME"))
+	DBConfig.SSLMode = os.Getenv("SSL_MODE")
 
-// mapTo map section
-func mapTo(section string, v interface{}) {
-	err := cfg.Section(section).MapTo(v)
-	if err != nil {
-		log.Panicf("Cfg.MapTo %s err: %v", section, err)
-	}
+	// Setup Redis
+	RedisConfig.Host = os.Getenv("REDIS_HOST")
+	RedisConfig.Password = os.Getenv("REDIS_PASSWORD")
+
+	// Setup SMTP
+	EmailConfig.From = os.Getenv("EMAIL_FROM")
+	EmailConfig.SMTPServer = os.Getenv("SMTP_SERVER")
+	EmailConfig.Port, _ = strconv.Atoi(os.Getenv("SMTP_PORT"))
+	EmailConfig.Password = os.Getenv("SMTP_PASSWORD")
+
 }
 
 var DBInstance *gorm.DB

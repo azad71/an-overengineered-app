@@ -18,6 +18,7 @@ type Database struct {
 	Name            string
 	Port            int
 	ConnMaxLifeTime int
+	SSLMode         string
 }
 
 var DBConfig = &Database{}
