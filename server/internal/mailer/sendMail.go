@@ -29,7 +29,7 @@ func SendMail(receiver []string, content []byte, mailType string) error {
 
 	mailUrl := fmt.Sprintf("%s:%d", emailConfig.SMTPServer, emailConfig.Port)
 
-	fmt.Printf("Constructed mail url: %s\n", mailUrl)
+	// fmt.Printf("Constructed mail url: %s\n", mailUrl)
 
 	err := newMail.Send(mailUrl, smtp.PlainAuth("", "Admin", "", emailConfig.SMTPServer))
 

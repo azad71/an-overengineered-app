@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"an-overengineered-social-media-app/internal/httpError"
+	"an-overengineered-social-media-app/internal/httpResponse"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +12,7 @@ func ErrorHandler() gin.HandlerFunc {
 		c.Next()
 		for _, err := range c.Errors {
 			switch e := err.Err.(type) {
-			case httpError.CustomError:
+			case httpResponse.CustomError:
 				c.AbortWithStatusJSON(e.StatusCode, e)
 			default:
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{

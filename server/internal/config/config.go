@@ -5,7 +5,7 @@ type App struct {
 	AppUrl    string
 	RunMode   string
 	HttpPort  int
-	ENV       string
+	AppEnv    string
 }
 
 var AppConfig = &App{}

@@ -10,8 +10,8 @@ import (
 func InitRouter() *gin.Engine {
 
 	router := gin.New()
-	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+	router.Use(middleware.DefaultStructuredLogger())
 	router.Use(middleware.ErrorHandler())
 
 	apiV1 := router.Group("/api/v1")

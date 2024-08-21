@@ -1,4 +1,4 @@
-package httpError
+package httpResponse
 
 import (
 	"an-overengineered-social-media-app/internal/helpers"

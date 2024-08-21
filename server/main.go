@@ -3,9 +3,10 @@ package main
 import (
 	"an-overengineered-social-media-app/internal/config"
 	"an-overengineered-social-media-app/internal/helpers"
+	"an-overengineered-social-media-app/internal/logger"
 	users "an-overengineered-social-media-app/modules/user"
+	"context"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -33,11 +34,14 @@ func main() {
 		Handler: routes,
 	}
 
-	log.Printf("[info] Server is running at: %s:%d", config.AppConfig.AppUrl, config.AppConfig.HttpPort)
+	logger.PrintInfo(context.TODO(), fmt.Sprintf("Server is running at: %s:%d",
+		config.AppConfig.AppUrl,
+		config.AppConfig.HttpPort),
+		nil)
 
 	err := server.ListenAndServe()
 
 	if err != nil {
-		log.Fatalf("Failed to start server, error: %v", err)
+		logger.PrintFatal(context.TODO(), "Failed to start server, error:", err)
 	}
 }

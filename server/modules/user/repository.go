@@ -13,7 +13,11 @@ func IsEmailAndUsernameUnique(email string, username string) (bool, error) {
 
 	var count int64
 
-	result := db.Model(&users.User{}).Where("email = ?", email).Or("username = ?", username).Select("id").Count(&count)
+	result := db.Model(&users.User{}).
+		Where("email = ?", email).
+		Or("username = ?", username).
+		Select("id").
+		Count(&count)
 
 	if result.Error != nil {
 		fmt.Printf("Error occurred while checking email and username uniqueness. %v\n", result.Error)
