@@ -1,7 +1,7 @@
 package users
 
 import (
-	users "an-overengineered-social-media-app/modules/user/models"
+	users "an-overengineered-app/modules/user/models"
 	"time"
 
 	"github.com/go-playground/validator/v10"

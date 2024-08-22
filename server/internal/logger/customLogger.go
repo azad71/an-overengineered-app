@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"an-overengineered-social-media-app/internal/helpers"
+	"an-overengineered-app/internal/helpers"
 	"context"
 
 	"github.com/rs/zerolog"

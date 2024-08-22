@@ -1,7 +1,7 @@
 package config
 
 import (
-	"an-overengineered-social-media-app/internal/logger"
+	"an-overengineered-app/internal/logger"
 	"context"
 	"fmt"
 	"os"

@@ -1,7 +1,7 @@
 package mailer
 
 import (
-	"an-overengineered-social-media-app/internal/config"
+	"an-overengineered-app/internal/config"
 	"fmt"
 	"net/smtp"
 

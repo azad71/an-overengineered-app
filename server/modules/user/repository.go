@@ -1,9 +1,9 @@
 package users
 
 import (
-	"an-overengineered-social-media-app/internal/config"
-	"an-overengineered-social-media-app/internal/logger"
-	users "an-overengineered-social-media-app/modules/user/models"
+	"an-overengineered-app/internal/config"
+	"an-overengineered-app/internal/logger"
+	users "an-overengineered-app/modules/user/models"
 	"context"
 	"fmt"
 

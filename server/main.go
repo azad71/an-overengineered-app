@@ -1,10 +1,10 @@
 package main
 
 import (
-	"an-overengineered-social-media-app/internal/config"
-	"an-overengineered-social-media-app/internal/helpers"
-	"an-overengineered-social-media-app/internal/logger"
-	users "an-overengineered-social-media-app/modules/user"
+	"an-overengineered-app/internal/config"
+	"an-overengineered-app/internal/helpers"
+	"an-overengineered-app/internal/logger"
+	users "an-overengineered-app/modules/user"
 	"context"
 	"fmt"
 	"net/http"

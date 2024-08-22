@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"an-overengineered-social-media-app/internal/httpResponse"
+	"an-overengineered-app/internal/httpResponse"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

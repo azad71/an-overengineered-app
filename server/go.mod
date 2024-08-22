@@ -1,4 +1,4 @@
-module an-overengineered-social-media-app
+module an-overengineered-app
 
 go 1.22.4
 

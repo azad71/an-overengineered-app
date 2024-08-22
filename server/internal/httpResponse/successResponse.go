@@ -1,7 +1,7 @@
 package httpResponse
 
 import (
-	"an-overengineered-social-media-app/internal/logger"
+	"an-overengineered-app/internal/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

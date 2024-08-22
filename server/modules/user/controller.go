@@ -1,10 +1,10 @@
 package users
 
 import (
-	"an-overengineered-social-media-app/internal/config"
-	"an-overengineered-social-media-app/internal/helpers"
-	"an-overengineered-social-media-app/internal/httpResponse"
-	"an-overengineered-social-media-app/internal/logger"
+	"an-overengineered-app/internal/config"
+	"an-overengineered-app/internal/helpers"
+	"an-overengineered-app/internal/httpResponse"
+	"an-overengineered-app/internal/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"

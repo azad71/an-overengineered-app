@@ -11,7 +11,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	logInstance "an-overengineered-social-media-app/internal/logger"
+	logInstance "an-overengineered-app/internal/logger"
 )
 
 func DefaultStructuredLogger() gin.HandlerFunc {

@@ -1,7 +1,7 @@
 package httpResponse
 
 import (
-	"an-overengineered-social-media-app/internal/helpers"
+	"an-overengineered-app/internal/helpers"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"

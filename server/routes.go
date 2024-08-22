@@ -1,8 +1,8 @@
 package main
 
 import (
-	"an-overengineered-social-media-app/internal/middleware"
-	users "an-overengineered-social-media-app/modules/user"
+	"an-overengineered-app/internal/middleware"
+	users "an-overengineered-app/modules/user"
 
 	"github.com/gin-gonic/gin"
 )
