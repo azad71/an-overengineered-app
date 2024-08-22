@@ -33,7 +33,7 @@ func SignupUser(ctx *gin.Context) {
 
 	logger.PrintInfo(reqCtx, "Validated request body", userData)
 
-	isNewUser, err := IsEmailAndUsernameUnique(userData.Email, userData.Username)
+	isNewUser, err := IsEmailAndUsernameUnique(userData.Email, userData.Username, reqCtx)
 
 	if err != nil {
 		ctx.Error(httpResponse.InternerServerError("", nil))
@@ -74,7 +74,7 @@ func SignupUser(ctx *gin.Context) {
 		return
 	}
 
-	err = CreateUser(&newUserData, tx)
+	err = CreateUser(&newUserData, tx, reqCtx)
 
 	logger.PrintInfo(reqCtx, "User object after inserting into db", newUserData)
 
@@ -99,7 +99,7 @@ func SignupUser(ctx *gin.Context) {
 
 	logger.PrintInfo(reqCtx, "Generated OTP object to save into db", otpData)
 
-	err = CreateOTP(&otpData, tx)
+	err = CreateOTP(&otpData, tx, reqCtx)
 	logger.PrintInfo(reqCtx, "OTP object after inserting into db", otpData)
 
 	if err != nil {
@@ -128,6 +128,7 @@ func SignupUser(ctx *gin.Context) {
 		"email":        newUserData.Email,
 		"username":     newUserData.Username,
 	}
+
 	httpResponse.Created(ctx, "An OTP sent to your mail. Please verify your account to continue", resData)
 
 }

@@ -10,6 +10,7 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	gormLogger "gorm.io/gorm/logger"
 )
 
 // Setup initialize the configuration instance
@@ -53,6 +54,10 @@ func SetupDB() {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable", DBConfig.Host, DBConfig.User, DBConfig.Password, DBConfig.Name, DBConfig.Port)
 	DBInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
 		SkipDefaultTransaction: true,
+		Logger: logger.NewDBLogger(*logger.GetLogger(), gormLogger.Config{
+			Colorful: true,
+			LogLevel: gormLogger.Silent,
+		}),
 	})
 
 	if err != nil {
