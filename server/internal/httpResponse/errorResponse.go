@@ -12,6 +12,7 @@ type CustomError struct {
 	StatusCode int               `json:"statusCode"`
 	Errors     map[string]string `json:"errors,omitempty"`
 	Data       map[string]any    `json:"data,omitempty"`
+	RequestID  string            `json:"requestId,omitempty"`
 }
 
 func (e CustomError) Error() string {
