@@ -25,7 +25,7 @@ func BuildNewUserObj(userData SignupBody, hashedPassword []byte) users.User {
 
 func SendSignupMail(email string, otp string) error {
 	mailContent := mailer.GetSignupContent(otp)
-	return mailer.SendMail([]string{email}, []byte(mailContent), "auth")
+	return mailer.SendMail(email, []byte(mailContent), "auth")
 }
 
 func BuildOTPObj(otp string, userData users.User, otpType string) users.OtpCodes {

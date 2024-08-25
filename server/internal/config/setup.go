@@ -22,7 +22,11 @@ func SetupServerConfig() {
 	AppConfig.JwtSecret = os.Getenv("JWT_SECRET")
 	AppConfig.AppEnv = os.Getenv("APP_ENV")
 	AppConfig.HttpPort, _ = strconv.Atoi(os.Getenv("HTTP_PORT"))
-	AppConfig.RunMode = os.Getenv("RUN_MODE")
+	if appMode := os.Getenv("APP_ENV"); appMode != "production" {
+		AppConfig.RunMode = "debug"
+	} else {
+		AppConfig.RunMode = "release"
+	}
 
 	// Setup DB Config
 	DBConfig.Dialect = os.Getenv("DIALECT")

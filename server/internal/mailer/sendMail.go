@@ -2,10 +2,14 @@ package mailer
 
 import (
 	"an-overengineered-app/internal/config"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
-	"net/smtp"
+	"log"
+	"os"
+	"path/filepath"
 
-	"github.com/jordan-wright/email"
+	"gopkg.in/gomail.v2"
 )
 
 func getSubjectTitle(mailType string) string {
@@ -17,23 +21,35 @@ func getSubjectTitle(mailType string) string {
 	}
 }
 
-func SendMail(receiver []string, content []byte, mailType string) error {
+func SendMail(receiver string, content []byte, mailType string) error {
 	emailConfig := config.EmailConfig
 
-	newMail := &email.Email{
-		From:    emailConfig.From,
-		To:      receiver,
-		HTML:    content,
-		Subject: getSubjectTitle(mailType),
-	}
+	certPath, _ := os.Getwd()
+	certPath = filepath.Join(certPath, "certs", "smtp", "cert.pem")
 
-	mailUrl := fmt.Sprintf("%s:%d", emailConfig.SMTPServer, emailConfig.Port)
-
-	// fmt.Printf("Constructed mail url: %s\n", mailUrl)
-
-	err := newMail.Send(mailUrl, smtp.PlainAuth("", "Admin", "", emailConfig.SMTPServer))
+	cert, err := os.ReadFile(certPath)
 
 	if err != nil {
+		log.Fatalf("Failed to read smtp cert. Error: %v", err)
+		return err
+	}
+
+	certPool := x509.NewCertPool()
+	certPool.AppendCertsFromPEM(cert)
+	tlsConfig := &tls.Config{
+		RootCAs: certPool,
+	}
+
+	mailer := gomail.NewDialer(emailConfig.SMTPServer, emailConfig.Port, "", "")
+	mailer.TLSConfig = tlsConfig
+
+	mail := gomail.NewMessage()
+	mail.SetHeader("From", emailConfig.From)
+	mail.SetHeader("To", receiver)
+	mail.SetHeader("Subject", getSubjectTitle(mailType))
+	mail.SetBody("text/html", string(content))
+
+	if err := mailer.DialAndSend(mail); err != nil {
 		fmt.Printf("Failed to send email. Error: %v", err)
 		return err
 	}

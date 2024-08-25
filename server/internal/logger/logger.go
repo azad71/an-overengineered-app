@@ -29,7 +29,7 @@ func GetLogger() *zerolog.Logger {
 
 		var outputChannel io.Writer = prettyJSONWriter{os.Stdout}
 
-		if os.Getenv("APP_ENV") != "local" {
+		if os.Getenv("APP_ENV") == "production" {
 			outputChannel = os.Stderr
 		}
 

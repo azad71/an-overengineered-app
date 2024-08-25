@@ -1,0 +1,43 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.docker
+    depends_on:
+      - database
+      - mail_server
+    networks:
+      - app-network
+
+  database:
+    image: postgres:15-alpine
+    env_file:
+      - .env.docker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  mail_server:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025" # SMTP server
+      - "8025:8025" # Web interface
+    networks:
+      - app-network
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+    environment:
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: true
+      MP_SMTP_AUTH_ALLOW_INSECURE: true
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
