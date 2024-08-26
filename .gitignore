@@ -4,3 +4,5 @@ TODO.md
 build
 mailpit*
 certs
+coverage.html
+coverage.out

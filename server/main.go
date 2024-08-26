@@ -4,7 +4,6 @@ import (
 	"an-overengineered-app/internal/config"
 	"an-overengineered-app/internal/helpers"
 	"an-overengineered-app/internal/logger"
-	users "an-overengineered-app/modules/user"
 	"context"
 	"fmt"
 	"net/http"
@@ -25,7 +24,7 @@ func main() {
 	routes := InitRouter()
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("validateBirthDate", users.ValidateBirthDate)
+		v.RegisterValidation("validateBirthDate", helpers.IsDateBefore)
 	}
 	endPoint := fmt.Sprintf(":%d", config.AppConfig.HttpPort)
 

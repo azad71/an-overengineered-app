@@ -33,7 +33,7 @@ func FormatValidationError(err error) map[string]string {
 		case "alpha":
 			msg = fmt.Sprintf("%s must contain only alphabetic characters", err.Field())
 		case "validateBirthDate":
-			msg = "User must be  at least 12 years old"
+			msg = "User must be at least 12 years old"
 		default:
 			msg = fmt.Sprintf("%s is invalid", err.Field())
 		}
