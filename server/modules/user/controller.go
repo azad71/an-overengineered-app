@@ -87,13 +87,13 @@ func SignupUser(ctx *gin.Context) {
 
 	otp, err := helpers.GenerateOTP(6)
 
-	logger.PrintInfo(reqCtx, "Generated OTP", map[string]string{"otp": otp})
-
 	if err != nil {
 		logger.PrintErrorWithStack(reqCtx, "Failed to generate OTP", err)
 		ctx.Error(httpResponse.InternerServerError("", nil))
 		return
 	}
+
+	logger.PrintInfo(reqCtx, "Generated OTP", map[string]string{"otp": otp})
 
 	otpData := BuildOTPObj(otp, newUserData, "SIGNUP")
 

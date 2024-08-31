@@ -1,23 +1,31 @@
 package helpers
 
 import (
-	"fmt"
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog/log"
 )
 
+var GetAppModeFunc = GetAppMode
+
 func LoadEnv() {
-	fmt.Println("Initiating loading env...")
-	appMode := GetAppMode()
+	log.Info().
+		Str("source", "LoadEnv").
+		Msg("Initiating loading env...")
+
+	appMode := GetAppModeFunc()
 
 	err := godotenv.Load(appMode)
 
-	fmt.Printf("Env value loaded from %s\n", appMode)
+	log.Info().
+		Str("source", "LoadEnv").
+		Msgf("Env value loaded from %s", appMode)
 
 	if err != nil {
-		log.Fatalf("Failed to load env file: %v", err)
+		log.Fatal().
+			Str("source", "LoadEnv").
+			Msgf("Failed to load env file: %v", err)
 	}
 }
 

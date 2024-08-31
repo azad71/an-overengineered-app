@@ -77,3 +77,15 @@ func PrintPanic(ctx context.Context, msg string, err error) {
 
 	log.Panic().Err(err).Stack().Str("source", callerFunc).Msg(msg)
 }
+
+func PrintWarning(ctx context.Context, msg string, data any) {
+	callerFunc := helpers.GetCallerFuncName(2)
+	log := getLoggerInstance(ctx).Warn().Str("source", callerFunc)
+
+	if data != nil {
+		log.Interface("data", data)
+	} else {
+		log.Msg(msg)
+	}
+
+}
