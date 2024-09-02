@@ -11,7 +11,6 @@ type CustomError struct {
 	Message    string            `json:"message"`
 	StatusCode int               `json:"statusCode"`
 	Errors     map[string]string `json:"errors,omitempty"`
-	Data       map[string]any    `json:"data,omitempty"`
 	RequestID  string            `json:"requestId,omitempty"`
 }
 
@@ -19,28 +18,24 @@ func (e CustomError) Error() string {
 	return "CustomError"
 }
 
-func BadRequestError(message string, err error) CustomError {
+func BadRequestError(message string) CustomError {
 	if message == "" {
 		message = "Something went wrong"
 	}
 
 	return CustomError{
 		Message:    message,
-		Errors:     nil,
-		Data:       nil,
 		StatusCode: http.StatusBadRequest,
 	}
 }
 
-func InternerServerError(message string, err error) CustomError {
+func InternerServerError(message string) CustomError {
 	if message == "" {
 		message = "Something went wrong"
 	}
 
 	return CustomError{
 		Message:    message,
-		Errors:     nil,
-		Data:       nil,
 		StatusCode: http.StatusInternalServerError,
 	}
 }
@@ -52,7 +47,6 @@ func ValidationError(message string, errs validator.ValidationErrors) CustomErro
 	return CustomError{
 		Message:    message,
 		Errors:     helpers.FormatValidationError(errs),
-		Data:       nil,
 		StatusCode: http.StatusUnprocessableEntity,
 	}
 
@@ -66,7 +60,6 @@ func ConflictError(message string, err map[string]string) CustomError {
 	return CustomError{
 		Message:    message,
 		Errors:     err,
-		Data:       nil,
 		StatusCode: http.StatusConflict,
 	}
 }

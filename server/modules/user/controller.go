@@ -27,7 +27,7 @@ func SignupUser(ctx *gin.Context) {
 
 		logger.PrintErrorWithStack(reqCtx, "Failed to parse req body", err)
 
-		ctx.Error(httpResponse.BadRequestError("Failed to parse request data", nil))
+		ctx.Error(httpResponse.BadRequestError("Failed to parse request data"))
 		return
 	}
 
@@ -36,7 +36,7 @@ func SignupUser(ctx *gin.Context) {
 	isNewUser, err := IsEmailAndUsernameUnique(userData.Email, userData.Username, reqCtx)
 
 	if err != nil {
-		ctx.Error(httpResponse.InternerServerError("", nil))
+		ctx.Error(httpResponse.InternerServerError(""))
 		return
 	}
 
@@ -52,7 +52,7 @@ func SignupUser(ctx *gin.Context) {
 
 	if err != nil {
 		logger.PrintErrorWithStack(reqCtx, "Hashing password failed", err)
-		ctx.Error(httpResponse.InternerServerError("", nil))
+		ctx.Error(httpResponse.InternerServerError(""))
 		return
 	}
 
@@ -70,7 +70,7 @@ func SignupUser(ctx *gin.Context) {
 
 	if err := tx.Error; err != nil {
 		logger.PrintErrorWithStack(reqCtx, "Initiating db transaction failed", err)
-		ctx.Error(httpResponse.InternerServerError("", nil))
+		ctx.Error(httpResponse.InternerServerError(""))
 		return
 	}
 
@@ -81,7 +81,7 @@ func SignupUser(ctx *gin.Context) {
 	if err != nil {
 		logger.PrintErrorWithStack(reqCtx, "Failed insert new user in db", err)
 		tx.Rollback()
-		ctx.Error(httpResponse.InternerServerError("Failed to create new user", nil))
+		ctx.Error(httpResponse.InternerServerError("Failed to create new user"))
 		return
 	}
 
@@ -89,7 +89,7 @@ func SignupUser(ctx *gin.Context) {
 
 	if err != nil {
 		logger.PrintErrorWithStack(reqCtx, "Failed to generate OTP", err)
-		ctx.Error(httpResponse.InternerServerError("", nil))
+		ctx.Error(httpResponse.InternerServerError(""))
 		return
 	}
 
@@ -105,7 +105,7 @@ func SignupUser(ctx *gin.Context) {
 	if err != nil {
 		logger.PrintErrorWithStack(reqCtx, "Failed to insert otp in db", err)
 		tx.Rollback()
-		ctx.Error(httpResponse.InternerServerError("", nil))
+		ctx.Error(httpResponse.InternerServerError(""))
 		return
 	}
 
@@ -115,7 +115,7 @@ func SignupUser(ctx *gin.Context) {
 		logger.PrintErrorWithStack(reqCtx, "Failed to send new signup mail with otp to user", err)
 
 		tx.Rollback()
-		ctx.Error(httpResponse.InternerServerError("", nil))
+		ctx.Error(httpResponse.InternerServerError(""))
 		return
 	}
 

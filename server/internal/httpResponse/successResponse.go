@@ -17,9 +17,13 @@ func buildResponseObj(msg string, data gin.H, requestId string) gin.H {
 
 func Created(ctx *gin.Context, msg string, data gin.H) {
 
-	requestId := ctx.Request.
+	requestId, ok := ctx.Request.
 		Context().
 		Value(logger.RequestIdKey).(string)
+
+	if !ok {
+		requestId = ""
+	}
 
 	ctx.JSON(http.StatusCreated, buildResponseObj(msg, data, requestId))
 }

@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,7 +22,6 @@ func TestGenerateOTP(t *testing.T) {
 		maxDigits := int8(11)
 
 		otp, err := GenerateOTP(maxDigits)
-		fmt.Println(otp, err)
 
 		assert.Error(t, err)
 		assert.Equal(t, "", otp)
