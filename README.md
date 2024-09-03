@@ -1,4 +1,4 @@
-I can't over engineer stuff at work. So, I'm going to over engineer the shit out of this codebase.
+**I can't over engineer stuff at work. So, I'm going to over engineer the shit out of this codebase.**
 
 ### How to run server code
 
