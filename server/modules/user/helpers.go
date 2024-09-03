@@ -3,6 +3,7 @@ package users
 import (
 	"an-overengineered-app/internal/mailer"
 	users "an-overengineered-app/modules/user/models"
+	"context"
 	"time"
 )
 
@@ -23,9 +24,9 @@ func BuildNewUserObj(userData SignupBody, hashedPassword []byte) users.User {
 	}
 }
 
-func SendSignupMail(email string, otp string) error {
-	mailContent := mailer.GetSignupContent(otp)
-	return mailer.SendMail(email, []byte(mailContent), "auth")
+func SendSignupMail(ctx context.Context, email string, otp string) error {
+	mailContent := mailer.GetSignupContent(ctx, otp)
+	return mailer.SendMail(ctx, email, []byte(mailContent), "auth")
 }
 
 func BuildOTPObj(otp string, userData users.User, otpType string) users.OtpCodes {

@@ -2,12 +2,9 @@ package mailer
 
 import (
 	"an-overengineered-app/internal/config"
+	"an-overengineered-app/internal/logger"
+	"context"
 	"crypto/tls"
-	"crypto/x509"
-	"fmt"
-	"log"
-	"os"
-	"path/filepath"
 
 	"gopkg.in/gomail.v2"
 )
@@ -15,29 +12,22 @@ import (
 func getSubjectTitle(mailType string) string {
 	switch mailType {
 	case "auth":
-		return "An overengineered social app - Verify your email to continue"
+		return "An overengineered app - Verify your email to continue"
 	default:
-		return "An overengineered social app"
+		return "An overengineered app"
 	}
 }
 
-func SendMail(receiver string, content []byte, mailType string) error {
+func SendMail(ctx context.Context, receiver string, content []byte, mailType string) error {
+
+	logger.PrintInfo(ctx, "Sending mail", map[string]string{
+		"mailType": mailType,
+		"receiver": receiver,
+	})
 	emailConfig := config.EmailConfig
 
-	certPath, _ := os.Getwd()
-	certPath = filepath.Join(certPath, "certs", "smtp", "cert.pem")
-
-	cert, err := os.ReadFile(certPath)
-
-	if err != nil {
-		log.Fatalf("Failed to read smtp cert. Error: %v", err)
-		return err
-	}
-
-	certPool := x509.NewCertPool()
-	certPool.AppendCertsFromPEM(cert)
 	tlsConfig := &tls.Config{
-		RootCAs: certPool,
+		InsecureSkipVerify: true,
 	}
 
 	mailer := gomail.NewDialer(emailConfig.SMTPServer, emailConfig.Port, "", "")
@@ -50,7 +40,7 @@ func SendMail(receiver string, content []byte, mailType string) error {
 	mail.SetBody("text/html", string(content))
 
 	if err := mailer.DialAndSend(mail); err != nil {
-		fmt.Printf("Failed to send email. Error: %v", err)
+		logger.PrintErrorWithStack(ctx, "Failed to send email", err)
 		return err
 	}
 

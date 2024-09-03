@@ -2,12 +2,6 @@ I can't over engineer stuff at work. So, I'm going to over engineer the shit out
 
 ### How to run server code
 
-## Generate smtp certificate for email
-
-- Run below commands to generate self-signed smtp certificate. Without this, sending mail won't work.
-  - `mkdir -p server/certs/smtp` && `cd server/certs/smtp`
-  - `openssl req -x509 -newkey rsa:4096 -nodes -keyout key.pem -out cert.pem -sha256 -days 36500 -addext "subjectAltName = DNS:localhost"`, this will issue a self-signed certificate for 100 years!
-
 ## First approach (suitable for local development)
 
 ### Before running the code

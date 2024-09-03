@@ -53,7 +53,9 @@ func SetupServerConfig() {
 var DBInstance *gorm.DB
 
 func SetupDB() {
-	logger.PrintInfo(context.TODO(), "Connecting to Database...", nil)
+	ctx := context.TODO()
+
+	logger.PrintInfo(ctx, "Connecting to Database...", nil)
 	var err error
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable", DBConfig.Host, DBConfig.User, DBConfig.Password, DBConfig.Name, DBConfig.Port)
 	DBInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
@@ -65,17 +67,17 @@ func SetupDB() {
 	})
 
 	if err != nil {
-		logger.PrintPanic(context.TODO(), "Failed to connect to db", err)
+		logger.PrintPanic(ctx, "Failed to connect to db", err)
 	}
 
 	conn, err := DBInstance.DB()
 
 	if err != nil {
-		logger.PrintPanic(context.TODO(), "Failed to open connection", err)
+		logger.PrintPanic(ctx, "Failed to open connection", err)
 	}
 
 	conn.SetMaxIdleConns(10)
 	conn.SetMaxOpenConns(100)
 	conn.SetConnMaxLifetime(time.Hour * time.Duration(DBConfig.ConnMaxLifeTime))
-	logger.PrintInfo(context.TODO(), "Server connected to database successfully", nil)
+	logger.PrintInfo(ctx, "Server connected to database successfully", nil)
 }

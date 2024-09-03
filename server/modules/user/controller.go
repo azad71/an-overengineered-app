@@ -109,7 +109,7 @@ func SignupUser(ctx *gin.Context) {
 		return
 	}
 
-	err = SendSignupMail(newUserData.Email, otp)
+	err = SendSignupMail(ctx, newUserData.Email, otp)
 
 	if err != nil {
 		logger.PrintErrorWithStack(reqCtx, "Failed to send new signup mail with otp to user", err)
