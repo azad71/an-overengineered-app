@@ -18,6 +18,7 @@ func InitRouter() *gin.Engine {
 	authRoutes := apiV1.Group("/auth")
 	{
 		authRoutes.POST("/signup", users.SignupUser)
+		authRoutes.POST("/signup/validate-otp", users.ValidateSignupOTP)
 	}
 
 	return router

@@ -4,13 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/url"
+	"os"
 	"os/exec"
 
-	"github.com/go-ini/ini"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -29,7 +29,7 @@ func main() {
 			return
 		}
 
-		cmd := exec.Command("migrate", "create", "-ext=sql", "-dir=db/migrations", migrationName)
+		cmd := exec.Command("migrate", "create", "-ext=sql", "-dir=migrations", migrationName)
 
 		_, err := cmd.Output()
 
@@ -65,30 +65,52 @@ func main() {
 
 }
 
+func LoadEnv() error {
+
+	appMode := GetAppMode()
+
+	err := godotenv.Load(appMode)
+	log.Printf("Env value loaded from %s", appMode)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetAppMode() string {
+	appMode := os.Getenv("APP_ENV")
+
+	switch appMode {
+	case "production":
+		return ".env"
+	case "docker":
+		return ".env.docker"
+	default:
+		return ".env.dev"
+	}
+
+}
+
 func getDBConfig() (string, error) {
-	var cfg *ini.File
-	var err error
 
-	cfg, err = ini.Load("config.dev.ini")
+	err := LoadEnv()
 
 	if err != nil {
-		return "", err
+		log.Fatalf("Failed to load env file: %v", err)
 	}
 
-	dbConfig, err := cfg.GetSection("database")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	host := os.Getenv("DB_HOST")
+	name := os.Getenv("DB_NAME")
+	port := os.Getenv("DB_PORT")
+	sslMode := os.Getenv("SSL_MODE")
 
-	if err != nil {
-		return "", err
-	}
-
-	user, _ := dbConfig.GetKey("User")
-	password, _ := dbConfig.GetKey("Password")
-	host, _ := dbConfig.GetKey("Host")
-	name, _ := dbConfig.GetKey("Name")
-	port, _ := dbConfig.GetKey("Port")
-	sslMode, _ := dbConfig.GetKey("SSLMode")
-
-	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=%s", user.Value(), url.QueryEscape(password.Value()), host.Value(), port.Value(), name.Value(), sslMode.Value())
+	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=%s",
+		user, password, host, port, name, sslMode,
+	)
 
 	return dsn, nil
 }
@@ -100,7 +122,8 @@ func runMigration(action string) error {
 		return err
 	}
 
-	m, err := migrate.New("file://db/migrations", dsn)
+	m, err := migrate.New("file://migrations", dsn)
+
 	if err != nil {
 		log.Fatalf("Migration failed, error: %v", err)
 		return err

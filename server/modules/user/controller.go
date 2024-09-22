@@ -121,14 +121,19 @@ func SignupUser(ctx *gin.Context) {
 
 	tx.Commit()
 
-	resData := gin.H{
-		"expiresIn":    5,
-		"timeUnit":     "minutes",
-		"maximumRetry": 3,
-		"email":        newUserData.Email,
-		"username":     newUserData.Username,
-	}
+	httpResponse.Created(ctx, "An OTP sent to your mail. Please verify your account to continue", gin.H{})
 
-	httpResponse.Created(ctx, "An OTP sent to your mail. Please verify your account to continue", resData)
+}
 
+/*
+- validate incoming request body
+- check if given otp for email exists
+- check if retry count exceeds in a given time frame
+- if exceeds return from there with a warning message
+- else mark the otp as verified and user as verified
+*/
+func ValidateSignupOTP(ctx *gin.Context) {
+	reqCtx := ctx.Request.Context()
+
+	logger.PrintInfo(reqCtx, "Invoking ValidateSignupOTP controller func", nil)
 }

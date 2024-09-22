@@ -16,7 +16,12 @@ import (
 func init() {
 	helpers.LoadEnv()
 	config.SetupServerConfig()
-	config.SetupDB()
+	err := config.SetupDB()
+
+	if err != nil {
+		logger.PrintFatal(context.TODO(), "Failed to setup db connection", err)
+	}
+
 	gin.SetMode(config.AppConfig.RunMode)
 }
 

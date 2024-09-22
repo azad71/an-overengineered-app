@@ -52,7 +52,7 @@ func SetupServerConfig() {
 
 var DBInstance *gorm.DB
 
-func SetupDB() {
+func SetupDB() error {
 	ctx := context.TODO()
 
 	logger.PrintInfo(ctx, "Connecting to Database...", nil)
@@ -67,17 +67,21 @@ func SetupDB() {
 	})
 
 	if err != nil {
-		logger.PrintPanic(ctx, "Failed to connect to db", err)
+		logger.PrintErrorWithStack(ctx, "Failed to connect to db", err)
+		return err
 	}
 
 	conn, err := DBInstance.DB()
 
 	if err != nil {
-		logger.PrintPanic(ctx, "Failed to open connection", err)
+		logger.PrintErrorWithStack(ctx, "Failed to open connection", err)
+		return err
 	}
 
 	conn.SetMaxIdleConns(10)
 	conn.SetMaxOpenConns(100)
 	conn.SetConnMaxLifetime(time.Hour * time.Duration(DBConfig.ConnMaxLifeTime))
 	logger.PrintInfo(ctx, "Server connected to database successfully", nil)
+
+	return nil
 }

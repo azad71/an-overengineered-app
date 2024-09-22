@@ -29,3 +29,11 @@ Now copy paste below commands one at a time in terminal
 - Run `cd server`
 - Run `docker compose up --build`
 - Now api server should be available at `http:localhost:$HTTP_PORT`
+
+## Run db migration
+
+You will find a `manageMigration` binary in root folder. If you're not in \*nix system, go to dbUtils and build manageMigration.go script and move it back to server root.
+
+- To create a migration run, `./manageMigration -action create -name YOUR_DB_MIGRATION_NAME`
+- To run the migration, `./manageMigration -action up`
+- To down the migration `./manageMigration -action down`
