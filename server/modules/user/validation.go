@@ -5,7 +5,6 @@ import (
 )
 
 type SignupBody struct {
-	Username     string        `json:"username" binding:"required,alphanum,max=50"`
 	Password     string        `json:"password" binding:"required,min=6,max=250"`
 	Email        string        `json:"email" binding:"required,max=300,email"`
 	FirstName    *string       `json:"firstName" binding:"omitempty,max=100,alpha"`
@@ -15,4 +14,9 @@ type SignupBody struct {
 	Address      *string       `json:"address" binding:"omitempty,max=1000"`
 	UserTimezone *string       `json:"userTimezone" binding:"required"`
 	Description  *string       `json:"description" binding:"omitempty,max=5000"`
+}
+
+type VerifyOTPBody struct {
+	Otp   string `json:"otp" binding:"required,size=6"`
+	Email string `json:"email" binding:"required,max=300,email"`
 }

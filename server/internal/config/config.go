@@ -1,11 +1,12 @@
 package config
 
 type App struct {
-	JwtSecret string
-	AppUrl    string
-	RunMode   string
-	HttpPort  int
-	AppEnv    string
+	JwtSecret   string
+	AppUrl      string
+	RunMode     string
+	HttpPort    int
+	AppEnv      string
+	MaxOtpRetry int
 }
 
 var AppConfig = &App{}

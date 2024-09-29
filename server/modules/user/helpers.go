@@ -11,7 +11,6 @@ func BuildNewUserObj(userData SignupBody, hashedPassword []byte) users.User {
 	birthDate, _ := time.Parse("2006-01-02", *userData.BirthDate)
 
 	return users.User{
-		Username:     userData.Username,
 		Password:     string(hashedPassword),
 		Email:        userData.Email,
 		FirstName:    userData.FirstName,
@@ -32,9 +31,10 @@ func SendSignupMail(ctx context.Context, email string, otp string) error {
 func BuildOTPObj(otp string, userData users.User, otpType string) users.OtpCodes {
 	return users.OtpCodes{
 		Otp:        otp,
-		Username:   userData.Username,
 		Email:      userData.Email,
-		OtpType:    "SIGNUP",
+		OtpType:    otpType,
 		RetryCount: 0,
+		ExpiresAt:  time.Now().Add(2 * time.Minute),
 	}
+
 }

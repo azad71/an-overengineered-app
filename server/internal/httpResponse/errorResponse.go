@@ -63,3 +63,14 @@ func ConflictError(message string, err map[string]string) CustomError {
 		StatusCode: http.StatusConflict,
 	}
 }
+
+func RetryExceeded(message string) CustomError {
+	if message == "" {
+		message = "Maximum retry count exceeded"
+	}
+
+	return CustomError{
+		Message:    message,
+		StatusCode: http.StatusTooManyRequests,
+	}
+}

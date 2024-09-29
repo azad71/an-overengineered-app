@@ -22,7 +22,7 @@ const (
 
 type User struct {
 	gorm.Model
-	Username      string        `gorm:"unique;NOT NULL;size:50"`
+	Username      string        `gorm:"unique;size:50"`
 	Password      string        `gorm:"size:250;NOT NULL"`
 	Email         string        `gorm:"size:300;unique;NOT NULL"`
 	FirstName     *string       `gorm:"size:100;column:first_name"`
@@ -50,7 +50,6 @@ type UserPayload struct {
 func (user *User) Sanitize() UserPayload {
 	return UserPayload{
 		ID:            user.ID,
-		Username:      user.Username,
 		Email:         user.Email,
 		FirstName:     user.FirstName,
 		LastName:      user.LastName,

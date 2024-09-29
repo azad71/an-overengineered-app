@@ -22,6 +22,7 @@ func SetupServerConfig() {
 	AppConfig.JwtSecret = os.Getenv("JWT_SECRET")
 	AppConfig.AppEnv = os.Getenv("APP_ENV")
 	AppConfig.HttpPort, _ = strconv.Atoi(os.Getenv("HTTP_PORT"))
+	AppConfig.MaxOtpRetry, _ = strconv.Atoi(os.Getenv("MAX_OTP_RETRY"))
 	if appMode := os.Getenv("APP_ENV"); appMode != "production" {
 		AppConfig.RunMode = "debug"
 	} else {
@@ -50,6 +51,7 @@ func SetupServerConfig() {
 
 }
 
+// TODO make sure it's initiated once
 var DBInstance *gorm.DB
 
 func SetupDB() error {

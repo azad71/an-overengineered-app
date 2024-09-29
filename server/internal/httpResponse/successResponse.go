@@ -15,15 +15,27 @@ func buildResponseObj(msg string, data gin.H, requestId string) gin.H {
 	}
 }
 
-func Created(ctx *gin.Context, msg string, data gin.H) {
-
+func getRequestId(ctx *gin.Context) string {
 	requestId, ok := ctx.Request.
 		Context().
 		Value(logger.RequestIdKey).(string)
 
 	if !ok {
-		requestId = ""
+		return ""
 	}
 
+	return requestId
+}
+
+func Created(ctx *gin.Context, msg string, data gin.H) {
+
+	requestId := getRequestId(ctx)
+
 	ctx.JSON(http.StatusCreated, buildResponseObj(msg, data, requestId))
+}
+
+func Success(ctx *gin.Context, msg string, data gin.H) {
+	requestId := getRequestId(ctx)
+
+	ctx.JSON(http.StatusOK, buildResponseObj(msg, data, requestId))
 }
