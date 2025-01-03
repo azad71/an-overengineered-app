@@ -26,12 +26,12 @@ RUN apk --no-cache add ca-certificates bash postgresql-client
 # Copy the built application and other files
 COPY --from=builder /app/an-overengineered-app .
 COPY --from=builder /go/bin/migrate /usr/local/bin/migrate
-COPY ./db/migrations /app/db/migrations
+COPY ./migrations /app/migrations
 COPY init.sh /app/init.sh
 
 COPY .env.docker /app/.env.docker
 
-COPY certs /app/certs
+# COPY certs /app/certs
 
 
 # Set environment variables

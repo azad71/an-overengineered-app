@@ -13,14 +13,28 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 )
 
-var once sync.Once
-
-var log zerolog.Logger
+var (
+	once sync.Once
+	log  zerolog.Logger
+)
 
 func GetLogger() *zerolog.Logger {
 	once.Do(func() {
 		zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 		zerolog.TimeFieldFormat = time.RFC3339Nano
+		// zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
+		// 	sourcePath := filepath.Base(file)
+
+		// 	parts := strings.Split(filepath.ToSlash(file), "/")
+
+		// 	// Check if the path has at least two indexes
+		// 	if len(parts) >= 2 {
+		// 		sourcePath = filepath.Join(parts[len(parts)-2], parts[len(parts)-1])
+		// 	}
+
+		// 	return fmt.Sprintf("/%s:%d", sourcePath, line)
+		// }
+		// zerolog.CallerFieldName = "source"
 
 		logLevel, err := strconv.Atoi(os.Getenv("LOG_LEVEL"))
 		if err != nil {
@@ -33,9 +47,11 @@ func GetLogger() *zerolog.Logger {
 			outputChannel = os.Stderr
 		}
 
-		log = zerolog.New(outputChannel).
+		log = zerolog.
+			New(outputChannel).
 			Level(zerolog.Level(logLevel)).
 			With().
+			// Caller().
 			Timestamp().
 			Logger()
 
@@ -84,7 +100,7 @@ func (w prettyJSONWriter) Write(p []byte) (n int, err error) {
 func getColorForLevel(level string) string {
 	switch level {
 	case "info":
-		return "\033[1;32m" // Green
+		return "\033[0;32m" // Green
 	case "error":
 		return "\033[1;31m" // Red
 	case "fatal":

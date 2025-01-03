@@ -1,6 +1,7 @@
 package main
 
 import (
+	"an-overengineered-app/internal/logger"
 	"an-overengineered-app/internal/middleware"
 	users "an-overengineered-app/modules/user"
 
@@ -8,10 +9,11 @@ import (
 )
 
 func InitRouter() *gin.Engine {
+	logInstance := logger.GetLogger()
 
 	router := gin.New()
 	router.Use(gin.Recovery())
-	router.Use(middleware.DefaultStructuredLogger())
+	router.Use(middleware.HttpLogger(logInstance))
 	router.Use(middleware.ErrorHandler())
 
 	apiV1 := router.Group("/api/v1")

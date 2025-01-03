@@ -20,7 +20,7 @@ func getSubjectTitle(mailType string) string {
 
 func SendMail(ctx context.Context, receiver string, content []byte, mailType string) error {
 
-	logger.PrintInfo(ctx, "Sending mail", map[string]string{
+	logger.Info(ctx, "Sending mail", map[string]string{
 		"mailType": mailType,
 		"receiver": receiver,
 	})
@@ -40,7 +40,7 @@ func SendMail(ctx context.Context, receiver string, content []byte, mailType str
 	mail.SetBody("text/html", string(content))
 
 	if err := mailer.DialAndSend(mail); err != nil {
-		logger.PrintErrorWithStack(ctx, "Failed to send email", err)
+		logger.ErrorStack(ctx, "Failed to send email", err)
 		return err
 	}
 

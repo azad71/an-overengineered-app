@@ -19,7 +19,7 @@ func init() {
 	err := config.SetupDB()
 
 	if err != nil {
-		logger.PrintFatal(context.TODO(), "Failed to setup db connection", err)
+		logger.Fatal(context.Background(), "Failed to setup db connection", err)
 	}
 
 	gin.SetMode(config.AppConfig.RunMode)
@@ -38,7 +38,7 @@ func main() {
 		Handler: routes,
 	}
 
-	logger.PrintInfo(context.TODO(), fmt.Sprintf("Server is running at: %s:%d",
+	logger.Info(context.Background(), fmt.Sprintf("Server is running at: %s:%d",
 		config.AppConfig.AppUrl,
 		config.AppConfig.HttpPort),
 		nil)
@@ -46,6 +46,6 @@ func main() {
 	err := server.ListenAndServe()
 
 	if err != nil {
-		logger.PrintFatal(context.TODO(), "Failed to start server, error:", err)
+		logger.Fatal(context.TODO(), "Failed to start server, error:", err)
 	}
 }

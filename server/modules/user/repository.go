@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func IsEmailUnique(ctx context.Context, email string) (bool, error) {
@@ -21,7 +22,7 @@ func IsEmailUnique(ctx context.Context, email string) (bool, error) {
 		Count(&count)
 
 	if result.Error != nil {
-		logger.PrintErrorWithStack(ctx,
+		logger.ErrorStack(ctx,
 			"Error occurred while checking email uniqueness.",
 			result.Error,
 		)
@@ -36,7 +37,7 @@ func CreateUser(userData *users.User, db *gorm.DB, ctx context.Context) error {
 
 	if err := db.WithContext(ctx).Model(&users.User{}).Create(&userData).Error; err != nil {
 
-		logger.PrintErrorWithStack(ctx, "Error occurred while creating new user.", err)
+		logger.ErrorStack(ctx, "Error occurred while creating new user.", err)
 		return err
 	}
 
@@ -68,14 +69,33 @@ func FindOtp(ctx context.Context, email string, otp string, otpType string) (use
 		First(&foundOtp).Error
 
 	if err != nil {
-		logger.PrintErrorWithStack(ctx, "Failed to fetch otp data from db", err)
+		logger.ErrorStack(ctx, "Failed to fetch otp data from db", err)
 		return users.OtpCodes{}, err
 	}
 
 	return foundOtp, nil
 }
 
-func UpdateUser(ctx context.Context, updateData users.User, email string) {
-	db := config.DBInstance.WithContext(ctx)
+func UpdateUser(ctx context.Context, updateData users.User, email string) (users.User, error) {
 
+	logger.Info(ctx, "Invoking update user repository method", map[string]interface{}{
+		"updatePayload": updateData,
+		"email":         email,
+	})
+
+	db := config.DBInstance.WithContext(ctx).Model(users.User{})
+	var verifiedUser users.User
+
+	err := db.
+		Clauses(clause.Returning{}).
+		Where("email = ?", email).
+		Updates(&users.User{AccountStatus: updateData.AccountStatus}).
+		Scan(&verifiedUser).
+		Error
+
+	if err != nil {
+		return verifiedUser, err
+	}
+
+	return verifiedUser, nil
 }

@@ -7,6 +7,7 @@ type App struct {
 	HttpPort    int
 	AppEnv      string
 	MaxOtpRetry int
+	JWTExpiry   int
 }
 
 var AppConfig = &App{}

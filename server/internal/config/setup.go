@@ -15,7 +15,7 @@ import (
 
 // Setup initialize the configuration instance
 func SetupServerConfig() {
-	logger.PrintInfo(context.TODO(), "Setting up server config...", nil)
+	logger.Info(context.TODO(), "Setting up server config...", nil)
 
 	// Setup App Config
 	AppConfig.AppUrl = os.Getenv("APP_URL")
@@ -23,6 +23,7 @@ func SetupServerConfig() {
 	AppConfig.AppEnv = os.Getenv("APP_ENV")
 	AppConfig.HttpPort, _ = strconv.Atoi(os.Getenv("HTTP_PORT"))
 	AppConfig.MaxOtpRetry, _ = strconv.Atoi(os.Getenv("MAX_OTP_RETRY"))
+	AppConfig.JWTExpiry, _ = strconv.Atoi(os.Getenv("JWT_EXPIRY"))
 	if appMode := os.Getenv("APP_ENV"); appMode != "production" {
 		AppConfig.RunMode = "debug"
 	} else {
@@ -57,7 +58,7 @@ var DBInstance *gorm.DB
 func SetupDB() error {
 	ctx := context.TODO()
 
-	logger.PrintInfo(ctx, "Connecting to Database...", nil)
+	logger.Info(ctx, "Connecting to Database...", nil)
 	var err error
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable", DBConfig.Host, DBConfig.User, DBConfig.Password, DBConfig.Name, DBConfig.Port)
 	DBInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
@@ -69,21 +70,21 @@ func SetupDB() error {
 	})
 
 	if err != nil {
-		logger.PrintErrorWithStack(ctx, "Failed to connect to db", err)
+		logger.ErrorStack(ctx, "Failed to connect to db", err)
 		return err
 	}
 
 	conn, err := DBInstance.DB()
 
 	if err != nil {
-		logger.PrintErrorWithStack(ctx, "Failed to open connection", err)
+		logger.ErrorStack(ctx, "Failed to open connection", err)
 		return err
 	}
 
 	conn.SetMaxIdleConns(10)
 	conn.SetMaxOpenConns(100)
 	conn.SetConnMaxLifetime(time.Hour * time.Duration(DBConfig.ConnMaxLifeTime))
-	logger.PrintInfo(ctx, "Server connected to database successfully", nil)
+	logger.Info(ctx, "Server connected to database successfully", nil)
 
 	return nil
 }

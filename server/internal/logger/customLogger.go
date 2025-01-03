@@ -16,7 +16,7 @@ func getLoggerInstance(ctx context.Context) *zerolog.Logger {
 	}
 }
 
-func PrintInfo(ctx context.Context, msg string, data any) {
+func Info(ctx context.Context, msg string, data any) {
 
 	if msg == "" {
 		return
@@ -34,7 +34,7 @@ func PrintInfo(ctx context.Context, msg string, data any) {
 	}
 }
 
-func PrintError(ctx context.Context, msg string) {
+func Error(ctx context.Context, msg string, data any) {
 
 	if msg == "" {
 		return
@@ -48,7 +48,7 @@ func PrintError(ctx context.Context, msg string) {
 
 }
 
-func PrintErrorWithStack(ctx context.Context, msg string, err error) {
+func ErrorStack(ctx context.Context, msg string, err error) {
 
 	callerFunc := helpers.GetCallerFuncName(2)
 
@@ -62,7 +62,7 @@ func PrintErrorWithStack(ctx context.Context, msg string, err error) {
 
 }
 
-func PrintFatal(ctx context.Context, msg string, err error) {
+func Fatal(ctx context.Context, msg string, err error) {
 	callerFunc := helpers.GetCallerFuncName(2)
 
 	log := getLoggerInstance(ctx)
@@ -70,7 +70,7 @@ func PrintFatal(ctx context.Context, msg string, err error) {
 	log.Fatal().Err(err).Stack().Str("source", callerFunc).Msg(msg)
 }
 
-func PrintPanic(ctx context.Context, msg string, err error) {
+func Panic(ctx context.Context, msg string, err error) {
 	callerFunc := helpers.GetCallerFuncName(2)
 
 	log := getLoggerInstance(ctx)
@@ -78,7 +78,7 @@ func PrintPanic(ctx context.Context, msg string, err error) {
 	log.Panic().Err(err).Stack().Str("source", callerFunc).Msg(msg)
 }
 
-func PrintWarning(ctx context.Context, msg string, data any) {
+func Warning(ctx context.Context, msg string, data any) {
 	callerFunc := helpers.GetCallerFuncName(2)
 	log := getLoggerInstance(ctx).Warn().Str("source", callerFunc)
 

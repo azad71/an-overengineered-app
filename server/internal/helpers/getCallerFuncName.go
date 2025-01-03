@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"path/filepath"
 	"runtime"
 
@@ -17,9 +18,9 @@ func GetCallerFuncName(funcDepth int) string {
 		return ""
 	}
 
-	pc, _, _, _ := runtime.Caller(funcDepth)
+	pc, _, line, _ := runtime.Caller(funcDepth)
 
 	fn := runtime.FuncForPC(pc)
 
-	return filepath.Base(fn.Name())
+	return fmt.Sprintf("%s:%d", filepath.Base(fn.Name()), line)
 }

@@ -5,6 +5,7 @@ import (
 	"an-overengineered-app/internal/helpers"
 	"an-overengineered-app/internal/httpResponse"
 	"an-overengineered-app/internal/logger"
+	users "an-overengineered-app/modules/user/models"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,25 +16,25 @@ import (
 func SignupUser(ctx *gin.Context) {
 	reqCtx := ctx.Request.Context()
 
-	logger.PrintInfo(reqCtx, "SignupUser controller method invoked...", nil)
+	logger.Info(reqCtx, "SignupUser controller method invoked...", nil)
 
 	var userData SignupBody
 
 	// TODO move server side validation to middleware
 	if err := ctx.ShouldBindJSON(&userData); err != nil {
 		if errs, ok := err.(validator.ValidationErrors); ok {
-			logger.PrintErrorWithStack(reqCtx, "Failed to validate req body", err)
+			logger.ErrorStack(reqCtx, "Failed to validate req body", err)
 			ctx.Error(httpResponse.ValidationError("", errs))
 			return
 		}
 
-		logger.PrintErrorWithStack(reqCtx, "Failed to parse req body", err)
+		logger.ErrorStack(reqCtx, "Failed to parse req body", err)
 
 		ctx.Error(httpResponse.BadRequestError("Failed to parse request data"))
 		return
 	}
 
-	logger.PrintInfo(reqCtx, "Validated request body", userData)
+	logger.Info(reqCtx, "Validated request body", userData)
 
 	isNewUser, err := IsEmailUnique(reqCtx, userData.Email)
 
@@ -43,7 +44,7 @@ func SignupUser(ctx *gin.Context) {
 	}
 
 	if !isNewUser {
-		logger.PrintError(reqCtx, "User with provided email already exists")
+		logger.Error(reqCtx, "User with provided email already exists", nil)
 		ctx.Error(httpResponse.ConflictError("Email already taken!", map[string]string{
 			"email": "Email already taken!",
 		}))
@@ -53,35 +54,29 @@ func SignupUser(ctx *gin.Context) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userData.Password), 10)
 
 	if err != nil {
-		logger.PrintErrorWithStack(reqCtx, "Hashing password failed", err)
+		logger.ErrorStack(reqCtx, "Hashing password failed", err)
 		ctx.Error(httpResponse.InternerServerError(""))
 		return
 	}
 
 	newUserData := BuildNewUserObj(userData, hashedPassword)
 
-	logger.PrintInfo(reqCtx, "Constructed new user object", newUserData)
+	logger.Info(reqCtx, "Constructed new user object", newUserData)
 
 	tx := config.DBInstance.Begin()
 
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		tx.Rollback()
-	// 	}
-	// }()
-
 	if err := tx.Error; err != nil {
-		logger.PrintErrorWithStack(reqCtx, "Initiating db transaction failed", err)
+		logger.ErrorStack(reqCtx, "Initiating db transaction failed", err)
 		ctx.Error(httpResponse.InternerServerError(""))
 		return
 	}
 
 	err = CreateUser(&newUserData, tx, reqCtx)
 
-	logger.PrintInfo(reqCtx, "User object after inserting into db", newUserData)
+	logger.Info(reqCtx, "User object after inserting into db", newUserData)
 
 	if err != nil {
-		logger.PrintErrorWithStack(reqCtx, "Failed insert new user in db", err)
+		logger.ErrorStack(reqCtx, "Failed insert new user in db", err)
 		tx.Rollback()
 		ctx.Error(httpResponse.InternerServerError("Failed to create new user"))
 		return
@@ -90,22 +85,22 @@ func SignupUser(ctx *gin.Context) {
 	otp, err := helpers.GenerateOTP(6)
 
 	if err != nil {
-		logger.PrintErrorWithStack(reqCtx, "Failed to generate OTP", err)
+		logger.ErrorStack(reqCtx, "Failed to generate OTP", err)
 		ctx.Error(httpResponse.InternerServerError(""))
 		return
 	}
 
-	logger.PrintInfo(reqCtx, "Generated OTP", map[string]string{"otp": otp})
+	logger.Info(reqCtx, "Generated OTP", map[string]string{"otp": otp})
 
 	otpData := BuildOTPObj(otp, newUserData, config.OTP_TYPE_SIGNUP)
 
-	logger.PrintInfo(reqCtx, "Generated OTP object to save into db", otpData)
+	logger.Info(reqCtx, "Generated OTP object to save into db", otpData)
 
 	err = CreateOTP(&otpData, tx, reqCtx)
-	logger.PrintInfo(reqCtx, "OTP object after inserting into db", otpData)
+	logger.Info(reqCtx, "OTP object after inserting into db", otpData)
 
 	if err != nil {
-		logger.PrintErrorWithStack(reqCtx, "Failed to insert otp in db", err)
+		logger.ErrorStack(reqCtx, "Failed to insert otp in db", err)
 		tx.Rollback()
 		ctx.Error(httpResponse.InternerServerError(""))
 		return
@@ -114,7 +109,7 @@ func SignupUser(ctx *gin.Context) {
 	err = SendSignupMail(reqCtx, newUserData.Email, otp)
 
 	if err != nil {
-		logger.PrintErrorWithStack(reqCtx, "Failed to send new signup mail with otp to user", err)
+		logger.ErrorStack(reqCtx, "Failed to send new signup mail with otp to user", err)
 
 		tx.Rollback()
 		ctx.Error(httpResponse.InternerServerError(""))
@@ -141,44 +136,60 @@ func SignupUser(ctx *gin.Context) {
 func VerifySignupOTP(ctx *gin.Context) {
 	reqCtx := ctx.Request.Context()
 
-	logger.PrintInfo(reqCtx, "Invoking ValidateSignupOTP controller func", nil)
+	logger.Info(reqCtx, "Invoking ValidateSignupOTP controller func", nil)
 
 	var body VerifyOTPBody
 
 	// TODO should be moved to middleware
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		if errs, ok := err.(validator.ValidationErrors); ok {
-			logger.PrintErrorWithStack(reqCtx, "Failed to validate req body", err)
+			logger.ErrorStack(reqCtx, "Failed to validate req body", err)
 			ctx.Error(httpResponse.ValidationError("", errs))
 		}
 
-		logger.PrintErrorWithStack(reqCtx, "Failed to parse req body", err)
+		logger.ErrorStack(reqCtx, "Failed to parse req body", err)
 		ctx.Error(httpResponse.BadRequestError("Failed to parse request data"))
 		return
 	}
 
-	logger.PrintInfo(reqCtx, "Parsed data from req body", body)
+	logger.Info(reqCtx, "Parsed data from req body", body)
 
 	foundOtp, err := FindOtp(reqCtx, body.Email, body.Otp, config.OTP_TYPE_SIGNUP)
 
 	if err != nil {
-		logger.PrintError(reqCtx, "No otp found with given data")
+		logger.Error(reqCtx, "No otp found with given data", nil)
 		ctx.Error(httpResponse.BadRequestError("Invalid OTP"))
 		return
 	}
 
 	if time.Now().After(foundOtp.ExpiresAt) {
-		logger.PrintError(reqCtx, "OTP expired!")
+		logger.Error(reqCtx, "OTP expired!", nil)
 		ctx.Error(httpResponse.BadRequestError("OTP expired!"))
 		return
 	}
 
 	if foundOtp.RetryCount > config.AppConfig.MaxOtpRetry {
-		logger.PrintError(reqCtx, "Signup retry count exceeds maximum retry")
+		logger.Error(reqCtx, "Signup retry count exceeds maximum retry", nil)
 		ctx.Error(httpResponse.RetryExceeded("Too many retry. Please request for new OTP"))
 		return
 	}
 
-	httpResponse.Success(ctx, "User successfully verified!", gin.H{"data": foundOtp})
+	verifiedUser, err := UpdateUser(reqCtx, users.User{AccountStatus: users.Active}, body.Email)
+
+	if err != nil {
+		logger.ErrorStack(reqCtx, "Failed to update user account status", err)
+		ctx.Error(httpResponse.InternerServerError(""))
+		return
+	}
+
+	token, err := CreateJWT(reqCtx, verifiedUser)
+
+	if err != nil {
+		logger.ErrorStack(reqCtx, "Failed to generate jwt token", err)
+		ctx.Error(httpResponse.InternerServerError(""))
+		return
+	}
+
+	httpResponse.Success(ctx, "User successfully verified!", gin.H{"token": token})
 
 }

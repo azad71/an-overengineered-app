@@ -9,26 +9,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 
-	logInstance "an-overengineered-app/internal/logger"
+	logger "an-overengineered-app/internal/logger"
 )
 
-func DefaultStructuredLogger() gin.HandlerFunc {
-	return HttpLogger(&log.Logger)
-}
-
-func HttpLogger(logger *zerolog.Logger) gin.HandlerFunc {
+func HttpLogger(log *zerolog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 
-		log := *logInstance.GetLogger()
 		requestId := xid.New().String()
 
-		log = log.With().Str("requestId", requestId).Logger()
+		log := log.With().Str("requestId", requestId).Logger()
 
 		ctx := log.WithContext(c.Request.Context())
-		ctx = context.WithValue(ctx, logInstance.RequestIdKey, requestId)
+		ctx = context.WithValue(ctx, logger.RequestIdKey, requestId)
 		c.Request = c.Request.WithContext(ctx)
 
 		c.Header("requestId", requestId)
@@ -36,8 +30,6 @@ func HttpLogger(logger *zerolog.Logger) gin.HandlerFunc {
 		latency := time.Since(start).String()
 		statusCode := c.Writer.Status()
 		buildInfo, _ := debug.ReadBuildInfo()
-
-		c.Next()
 
 		defer func() {
 			if panicValue := recover(); panicValue != nil {
@@ -57,6 +49,8 @@ func HttpLogger(logger *zerolog.Logger) gin.HandlerFunc {
 				Str("go_version", buildInfo.GoVersion).
 				Send()
 		}()
+
+		c.Next()
 
 	}
 }

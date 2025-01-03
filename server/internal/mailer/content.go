@@ -7,7 +7,7 @@ import (
 )
 
 func GetSignupContent(ctx context.Context, otp string) string {
-	logger.PrintInfo(ctx, "Generating signup mail content", nil)
+	logger.Info(ctx, "Generating signup mail content", nil)
 
 	content := `<p>Hi,</p>
 		<p>Thank you so much for signin up to <em>an overengineered app</em>.
@@ -24,7 +24,7 @@ func GetSignupContent(ctx context.Context, otp string) string {
 
 	content = strings.Replace(content, "{OTP_PLACEHOLDER}", otp, -1)
 
-	logger.PrintInfo(ctx, "Constructed signup mail content", map[string]string{"mailContent": content})
+	logger.Info(ctx, "Constructed signup mail content", map[string]string{"mailContent": content})
 
 	return content
 }

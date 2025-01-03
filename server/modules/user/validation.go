@@ -17,6 +17,6 @@ type SignupBody struct {
 }
 
 type VerifyOTPBody struct {
-	Otp   string `json:"otp" binding:"required,size=6"`
+	Otp   string `json:"otp" binding:"required,max=6"`
 	Email string `json:"email" binding:"required,max=300,email"`
 }
