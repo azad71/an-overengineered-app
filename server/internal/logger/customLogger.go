@@ -1,91 +1,76 @@
 package logger
 
 import (
-	"an-overengineered-app/internal/helpers"
 	"context"
 
 	"github.com/rs/zerolog"
 )
 
-func getLoggerInstance(ctx context.Context) *zerolog.Logger {
-
-	if ctx == nil || ctx == context.TODO() {
-		return GetLogger()
-	} else {
-		return zerolog.Ctx(ctx)
-	}
+func setLogMetaData(log *zerolog.Event) *zerolog.Event {
+	src, funcName, _ := getCallerFuncSource(3)
+	return log.Str("src", src).Str("func", funcName)
 }
 
 func Info(ctx context.Context, msg string, data any) {
-
-	if msg == "" {
-		return
-	}
-	log := getLoggerInstance(ctx)
-
-	callerFunc := helpers.GetCallerFuncName(2)
-
-	infoLog := log.Info().Str("source", callerFunc)
+	log := zerolog.Ctx(ctx).Info()
+	log = setLogMetaData(log)
 
 	if data != nil {
-		infoLog.Interface("data", data).Msg(msg)
-	} else {
-		infoLog.Msg(msg)
+		log = log.Interface("data", data)
 	}
+
+	log.Msg(msg)
 }
 
 func Error(ctx context.Context, msg string, data any) {
+	log := zerolog.Ctx(ctx).Error()
+	log = setLogMetaData(log)
 
-	if msg == "" {
-		return
-	}
-
-	callerFunc := helpers.GetCallerFuncName(2)
-
-	log := getLoggerInstance(ctx)
-
-	log.Error().Str("source", callerFunc).Msg(msg)
+	log.Msg(msg)
 
 }
 
-func ErrorStack(ctx context.Context, msg string, err error) {
+func ErrorStack(ctx context.Context, msg string, err error, errData ...any) {
+	if err == nil {
+		return
+	}
 
-	callerFunc := helpers.GetCallerFuncName(2)
+	log := zerolog.Ctx(ctx).Error()
+	log = setLogMetaData(log).Err(err).Stack()
 
-	log := getLoggerInstance(ctx)
+	if errData != nil {
+		log.Interface("errData", errData)
+	}
 
 	if msg != "" {
-		log.Error().Err(err).Stack().Str("source", callerFunc).Msg(msg)
+		log.Msg(msg)
 	} else {
-		log.Error().Err(err).Stack().Str("source", callerFunc).Send()
+		log.Send()
 	}
 
 }
 
 func Fatal(ctx context.Context, msg string, err error) {
-	callerFunc := helpers.GetCallerFuncName(2)
+	log := zerolog.Ctx(ctx).Fatal()
+	log = setLogMetaData(log)
 
-	log := getLoggerInstance(ctx)
-
-	log.Fatal().Err(err).Stack().Str("source", callerFunc).Msg(msg)
+	log.Err(err).Stack().Msg(msg)
 }
 
 func Panic(ctx context.Context, msg string, err error) {
-	callerFunc := helpers.GetCallerFuncName(2)
+	log := zerolog.Ctx(ctx).Panic()
+	log = setLogMetaData(log)
 
-	log := getLoggerInstance(ctx)
-
-	log.Panic().Err(err).Stack().Str("source", callerFunc).Msg(msg)
+	log.Err(err).Stack().Msg(msg)
 }
 
 func Warning(ctx context.Context, msg string, data any) {
-	callerFunc := helpers.GetCallerFuncName(2)
-	log := getLoggerInstance(ctx).Warn().Str("source", callerFunc)
+	log := zerolog.Ctx(ctx).Warn()
+	log = setLogMetaData(log)
 
 	if data != nil {
 		log.Interface("data", data)
-	} else {
-		log.Msg(msg)
 	}
 
+	log.Msg(msg)
 }
