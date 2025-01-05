@@ -29,17 +29,17 @@ func TestBadRequestError(t *testing.T) {
 func TestInternalServerError(t *testing.T) {
 
 	t.Run("Should return provided error message", func(t *testing.T) {
-		err := InternerServerError("Failed to save user")
+		err := InternalServerError("Failed to save user")
 		assert.Equal(t, "Failed to save user", err.Message)
 	})
 
 	t.Run("Should return http 500", func(t *testing.T) {
-		err := InternerServerError("")
+		err := InternalServerError("")
 		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
 	})
 
 	t.Run("Should return default error message if empty string provided", func(t *testing.T) {
-		err := InternerServerError("")
+		err := InternalServerError("")
 		assert.Equal(t, "Something went wrong", err.Message)
 	})
 }

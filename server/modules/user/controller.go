@@ -15,31 +15,23 @@ import (
 
 func SignupUser(ctx *gin.Context) {
 	reqCtx := ctx.Request.Context()
-
 	logger.Info(reqCtx, "SignupUser controller method invoked...", nil)
 
-	var userData SignupBody
+	rawData, exists := ctx.Get("body")
 
-	// TODO move server side validation to middleware
-	if err := ctx.ShouldBindJSON(&userData); err != nil {
-		if errs, ok := err.(validator.ValidationErrors); ok {
-			logger.ErrorStack(reqCtx, "Failed to validate req body", err)
-			ctx.Error(httpResponse.ValidationError("", errs))
-			return
-		}
-
-		logger.ErrorStack(reqCtx, "Failed to parse req body", err)
-
-		ctx.Error(httpResponse.BadRequestError("Failed to parse request data"))
-		return
+	if !exists {
+		logger.Error(reqCtx, "Error retrieving request body", nil)
+		ctx.Error(httpResponse.InternalServerError(""))
 	}
 
-	logger.Info(reqCtx, "Validated request body", userData)
+	body := rawData.(SignupBody)
 
-	isNewUser, err := IsEmailUnique(reqCtx, userData.Email)
+	logger.Info(reqCtx, "Validated request body", body)
+
+	isNewUser, err := IsEmailUnique(reqCtx, body.Email)
 
 	if err != nil {
-		ctx.Error(httpResponse.InternerServerError(""))
+		ctx.Error(httpResponse.InternalServerError(""))
 		return
 	}
 
@@ -51,15 +43,15 @@ func SignupUser(ctx *gin.Context) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userData.Password), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 
 	if err != nil {
 		logger.ErrorStack(reqCtx, "Hashing password failed", err)
-		ctx.Error(httpResponse.InternerServerError(""))
+		ctx.Error(httpResponse.InternalServerError(""))
 		return
 	}
 
-	newUserData := BuildNewUserObj(userData, hashedPassword)
+	newUserData := BuildNewUserObj(body, hashedPassword)
 
 	logger.Info(reqCtx, "Constructed new user object", newUserData)
 
@@ -67,7 +59,7 @@ func SignupUser(ctx *gin.Context) {
 
 	if err := tx.Error; err != nil {
 		logger.ErrorStack(reqCtx, "Initiating db transaction failed", err)
-		ctx.Error(httpResponse.InternerServerError(""))
+		ctx.Error(httpResponse.InternalServerError(""))
 		return
 	}
 
@@ -78,7 +70,7 @@ func SignupUser(ctx *gin.Context) {
 	if err != nil {
 		logger.ErrorStack(reqCtx, "Failed insert new user in db", err)
 		tx.Rollback()
-		ctx.Error(httpResponse.InternerServerError("Failed to create new user"))
+		ctx.Error(httpResponse.InternalServerError("Failed to create new user"))
 		return
 	}
 
@@ -86,7 +78,7 @@ func SignupUser(ctx *gin.Context) {
 
 	if err != nil {
 		logger.ErrorStack(reqCtx, "Failed to generate OTP", err)
-		ctx.Error(httpResponse.InternerServerError(""))
+		ctx.Error(httpResponse.InternalServerError(""))
 		return
 	}
 
@@ -102,7 +94,7 @@ func SignupUser(ctx *gin.Context) {
 	if err != nil {
 		logger.ErrorStack(reqCtx, "Failed to insert otp in db", err)
 		tx.Rollback()
-		ctx.Error(httpResponse.InternerServerError(""))
+		ctx.Error(httpResponse.InternalServerError(""))
 		return
 	}
 
@@ -112,7 +104,7 @@ func SignupUser(ctx *gin.Context) {
 		logger.ErrorStack(reqCtx, "Failed to send new signup mail with otp to user", err)
 
 		tx.Rollback()
-		ctx.Error(httpResponse.InternerServerError(""))
+		ctx.Error(httpResponse.InternalServerError(""))
 		return
 	}
 
@@ -121,7 +113,6 @@ func SignupUser(ctx *gin.Context) {
 	httpResponse.Created(ctx, "An OTP sent to your mail. Please verify your account to continue", gin.H{
 		"email": newUserData.Email,
 	})
-
 }
 
 /*
@@ -178,7 +169,7 @@ func VerifySignupOTP(ctx *gin.Context) {
 
 	if err != nil {
 		logger.ErrorStack(reqCtx, "Failed to update user account status", err)
-		ctx.Error(httpResponse.InternerServerError(""))
+		ctx.Error(httpResponse.InternalServerError(""))
 		return
 	}
 
@@ -186,7 +177,7 @@ func VerifySignupOTP(ctx *gin.Context) {
 
 	if err != nil {
 		logger.ErrorStack(reqCtx, "Failed to generate jwt token", err)
-		ctx.Error(httpResponse.InternerServerError(""))
+		ctx.Error(httpResponse.InternalServerError(""))
 		return
 	}
 

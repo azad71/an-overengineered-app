@@ -29,7 +29,7 @@ func BadRequestError(message string) CustomError {
 	}
 }
 
-func InternerServerError(message string) CustomError {
+func InternalServerError(message string) CustomError {
 	if message == "" {
 		message = "Something went wrong"
 	}
