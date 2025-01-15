@@ -2,6 +2,8 @@ package users
 
 import (
 	"an-overengineered-app/internal/config"
+	"an-overengineered-app/internal/constants"
+	"an-overengineered-app/internal/db"
 	"an-overengineered-app/internal/helpers"
 	"an-overengineered-app/internal/httpResponse"
 	"an-overengineered-app/internal/logger"
@@ -55,7 +57,7 @@ func SignupUser(ctx *gin.Context) {
 
 	logger.Info(reqCtx, "Constructed new user object", newUserData)
 
-	tx := config.DBInstance.Begin()
+	tx := db.DBInstance.Begin()
 
 	if err := tx.Error; err != nil {
 		logger.ErrorStack(reqCtx, "Initiating db transaction failed", err)
@@ -84,7 +86,7 @@ func SignupUser(ctx *gin.Context) {
 
 	logger.Info(reqCtx, "Generated OTP", map[string]string{"otp": otp})
 
-	otpData := BuildOTPObj(otp, newUserData, config.OTP_TYPE_SIGNUP)
+	otpData := BuildOTPObj(otp, newUserData, constants.OTP_TYPE_SIGNUP)
 
 	logger.Info(reqCtx, "Generated OTP object to save into db", otpData)
 
@@ -145,7 +147,7 @@ func VerifySignupOTP(ctx *gin.Context) {
 
 	logger.Info(reqCtx, "Parsed data from req body", body)
 
-	foundOtp, err := FindOtp(reqCtx, body.Email, body.Otp, config.OTP_TYPE_SIGNUP)
+	foundOtp, err := FindOtp(reqCtx, body.Email, body.Otp, constants.OTP_TYPE_SIGNUP)
 
 	if err != nil {
 		logger.Error(reqCtx, "No otp found with given data", nil)

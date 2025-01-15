@@ -2,6 +2,7 @@ package main
 
 import (
 	"an-overengineered-app/internal/config"
+	"an-overengineered-app/internal/db"
 	"an-overengineered-app/internal/helpers"
 	"an-overengineered-app/internal/logger"
 	"context"
@@ -16,7 +17,7 @@ import (
 func init() {
 	helpers.LoadEnv()
 	config.SetupServerConfig()
-	err := config.SetupDB()
+	err := db.SetupDB()
 
 	if err != nil {
 		logger.Fatal(context.Background(), "Failed to setup db connection", err)

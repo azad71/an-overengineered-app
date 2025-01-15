@@ -1,4 +1,4 @@
-package config
+package constants
 
 const (
 	OTP_TYPE_SIGNUP = "SIGNUP"

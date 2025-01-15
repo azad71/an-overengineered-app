@@ -1,7 +1,7 @@
 package users
 
 import (
-	"an-overengineered-app/internal/config"
+	"an-overengineered-app/internal/db"
 	"an-overengineered-app/internal/logger"
 	users "an-overengineered-app/modules/user/models"
 	"context"
@@ -12,11 +12,11 @@ import (
 )
 
 func IsEmailUnique(ctx context.Context, email string) (bool, error) {
-	db := config.DBInstance
+	dbInstance := db.DBInstance
 
 	var count int64
 
-	result := db.WithContext(ctx).Model(&users.User{}).
+	result := dbInstance.WithContext(ctx).Model(&users.User{}).
 		Where("email = ?", email).
 		Select("id").
 		Count(&count)
@@ -56,11 +56,11 @@ func CreateOTP(otpData *users.OtpCodes, db *gorm.DB, ctx context.Context) error 
 
 func FindOtp(ctx context.Context, email string, otp string, otpType string) (users.OtpCodes, error) {
 
-	db := config.DBInstance.WithContext(ctx)
+	dbInstance := db.DBInstance.WithContext(ctx)
 
 	var foundOtp users.OtpCodes
 
-	err := db.Model(&users.OtpCodes{}).
+	err := dbInstance.Model(&users.OtpCodes{}).
 		Where(&users.OtpCodes{
 			Email:   email,
 			Otp:     otp,
@@ -83,10 +83,10 @@ func UpdateUser(ctx context.Context, updateData users.User, email string) (users
 		"email":         email,
 	})
 
-	db := config.DBInstance.WithContext(ctx).Model(users.User{})
+	dbInstance := db.DBInstance.WithContext(ctx).Model(users.User{})
 	var verifiedUser users.User
 
-	err := db.
+	err := dbInstance.
 		Clauses(clause.Returning{}).
 		Where("email = ?", email).
 		Updates(&users.User{AccountStatus: updateData.AccountStatus}).
