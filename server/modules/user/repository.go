@@ -1,7 +1,6 @@
 package users
 
 import (
-	"an-overengineered-app/internal/db"
 	"an-overengineered-app/internal/logger"
 	users "an-overengineered-app/modules/user/models"
 	"context"
@@ -11,12 +10,28 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func IsEmailUnique(ctx context.Context, email string) (bool, error) {
-	dbInstance := db.DBInstance
+type UserImpl interface {
+	IsEmailUnique(ctx context.Context, email string) (bool, error)
+	CreateUser(ctx context.Context, payload *users.User, tx *gorm.DB) error
+	CreateOTP(ctx context.Context, payload *users.OtpCodes, tx *gorm.DB) error
+	FindOTP(ctx context.Context, email, otp, otpType string) (users.OtpCodes, error)
+	UpdateUser(ctx context.Context, payload users.User, email string) (users.User, error)
+}
 
+type UserRepo struct {
+	DB *gorm.DB
+}
+
+func NewUserRepo(conn *gorm.DB) UserImpl {
+	return &UserRepo{
+		DB: conn,
+	}
+}
+
+func (u *UserRepo) IsEmailUnique(ctx context.Context, email string) (bool, error) {
 	var count int64
 
-	result := dbInstance.WithContext(ctx).Model(&users.User{}).
+	result := u.DB.WithContext(ctx).Model(&users.User{}).
 		Where("email = ?", email).
 		Select("id").
 		Count(&count)
@@ -32,10 +47,9 @@ func IsEmailUnique(ctx context.Context, email string) (bool, error) {
 	return count == 0, nil
 }
 
-// TODO need to set ctx as first func param
-func CreateUser(userData *users.User, db *gorm.DB, ctx context.Context) error {
+func (u *UserRepo) CreateUser(ctx context.Context, payload *users.User, tx *gorm.DB) error {
 
-	if err := db.WithContext(ctx).Model(&users.User{}).Create(&userData).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&users.User{}).Create(&payload).Error; err != nil {
 
 		logger.ErrorStack(ctx, "Error occurred while creating new user.", err)
 		return err
@@ -44,9 +58,9 @@ func CreateUser(userData *users.User, db *gorm.DB, ctx context.Context) error {
 	return nil
 }
 
-func CreateOTP(otpData *users.OtpCodes, db *gorm.DB, ctx context.Context) error {
+func (u *UserRepo) CreateOTP(ctx context.Context, payload *users.OtpCodes, tx *gorm.DB) error {
 
-	if err := db.WithContext(ctx).Model(&users.OtpCodes{}).Create(&otpData).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&users.OtpCodes{}).Create(&payload).Error; err != nil {
 		fmt.Printf("Error occurred while creating new otp record. %v\n", err)
 		return err
 	}
@@ -54,13 +68,10 @@ func CreateOTP(otpData *users.OtpCodes, db *gorm.DB, ctx context.Context) error 
 	return nil
 }
 
-func FindOtp(ctx context.Context, email string, otp string, otpType string) (users.OtpCodes, error) {
-
-	dbInstance := db.DBInstance.WithContext(ctx)
-
+func (u *UserRepo) FindOTP(ctx context.Context, email string, otp string, otpType string) (users.OtpCodes, error) {
 	var foundOtp users.OtpCodes
 
-	err := dbInstance.Model(&users.OtpCodes{}).
+	err := u.DB.WithContext(ctx).Model(&users.OtpCodes{}).
 		Where(&users.OtpCodes{
 			Email:   email,
 			Otp:     otp,
@@ -76,20 +87,20 @@ func FindOtp(ctx context.Context, email string, otp string, otpType string) (use
 	return foundOtp, nil
 }
 
-func UpdateUser(ctx context.Context, updateData users.User, email string) (users.User, error) {
+func (u *UserRepo) UpdateUser(ctx context.Context, payload users.User, email string) (users.User, error) {
 
 	logger.Info(ctx, "Invoking update user repository method", map[string]interface{}{
-		"updatePayload": updateData,
+		"updatePayload": payload,
 		"email":         email,
 	})
 
-	dbInstance := db.DBInstance.WithContext(ctx).Model(users.User{})
+	dbInstance := u.DB.WithContext(ctx).Model(users.User{})
 	var verifiedUser users.User
 
 	err := dbInstance.
 		Clauses(clause.Returning{}).
 		Where("email = ?", email).
-		Updates(&users.User{AccountStatus: updateData.AccountStatus}).
+		Updates(&users.User{AccountStatus: payload.AccountStatus}).
 		Scan(&verifiedUser).
 		Error
 

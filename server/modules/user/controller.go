@@ -13,9 +13,28 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
-func SignupUser(ctx *gin.Context) {
+var Controller *UserController
+
+type UserController struct {
+	Repo UserImpl
+	Db   *gorm.DB
+}
+
+func NewUserController(db *db.DB) *UserController {
+	return &UserController{
+		Repo: NewUserRepo(db.DBInstance),
+		Db:   db.DBInstance,
+	}
+}
+
+func NewControllers(uc *UserController) {
+	Controller = uc
+}
+
+func (uc *UserController) SignupUser(ctx *gin.Context) {
 	reqCtx := ctx.Request.Context()
 	logger.Info(reqCtx, "SignupUser controller method invoked...", nil)
 
@@ -30,7 +49,7 @@ func SignupUser(ctx *gin.Context) {
 
 	logger.Info(reqCtx, "Validated request body", body)
 
-	isNewUser, err := IsEmailUnique(reqCtx, body.Email)
+	isNewUser, err := uc.Repo.IsEmailUnique(reqCtx, body.Email)
 
 	if err != nil {
 		ctx.Error(httpResponse.InternalServerError(""))
@@ -57,7 +76,7 @@ func SignupUser(ctx *gin.Context) {
 
 	logger.Info(reqCtx, "Constructed new user object", newUserData)
 
-	tx := db.DBInstance.Begin()
+	tx := uc.Db.Begin()
 
 	if err := tx.Error; err != nil {
 		logger.ErrorStack(reqCtx, "Initiating db transaction failed", err)
@@ -65,7 +84,7 @@ func SignupUser(ctx *gin.Context) {
 		return
 	}
 
-	err = CreateUser(&newUserData, tx, reqCtx)
+	err = uc.Repo.CreateUser(ctx, &newUserData, tx)
 
 	logger.Info(reqCtx, "User object after inserting into db", newUserData)
 
@@ -90,7 +109,7 @@ func SignupUser(ctx *gin.Context) {
 
 	logger.Info(reqCtx, "Generated OTP object to save into db", otpData)
 
-	err = CreateOTP(&otpData, tx, reqCtx)
+	err = uc.Repo.CreateOTP(reqCtx, &otpData, tx)
 	logger.Info(reqCtx, "OTP object after inserting into db", otpData)
 
 	if err != nil {
@@ -126,7 +145,7 @@ func SignupUser(ctx *gin.Context) {
   - mark user as verified
   - generate JWT
 */
-func VerifySignupOTP(ctx *gin.Context) {
+func (uc *UserController) VerifySignupOTP(ctx *gin.Context) {
 	reqCtx := ctx.Request.Context()
 
 	logger.Info(reqCtx, "Invoking ValidateSignupOTP controller func", nil)
@@ -147,7 +166,7 @@ func VerifySignupOTP(ctx *gin.Context) {
 
 	logger.Info(reqCtx, "Parsed data from req body", body)
 
-	foundOtp, err := FindOtp(reqCtx, body.Email, body.Otp, constants.OTP_TYPE_SIGNUP)
+	foundOtp, err := uc.Repo.FindOTP(reqCtx, body.Email, body.Otp, constants.OTP_TYPE_SIGNUP)
 
 	if err != nil {
 		logger.Error(reqCtx, "No otp found with given data", nil)
@@ -167,7 +186,7 @@ func VerifySignupOTP(ctx *gin.Context) {
 		return
 	}
 
-	verifiedUser, err := UpdateUser(reqCtx, users.User{AccountStatus: users.Active}, body.Email)
+	verifiedUser, err := uc.Repo.UpdateUser(reqCtx, users.User{AccountStatus: users.Active}, body.Email)
 
 	if err != nil {
 		logger.ErrorStack(reqCtx, "Failed to update user account status", err)

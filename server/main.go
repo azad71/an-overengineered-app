@@ -17,17 +17,18 @@ import (
 func init() {
 	helpers.LoadEnv()
 	config.SetupServerConfig()
-	err := db.SetupDB()
-
-	if err != nil {
-		logger.Fatal(context.Background(), "Failed to setup db connection", err)
-	}
 
 	gin.SetMode(config.AppConfig.RunMode)
 }
 
 func main() {
-	routes := InitRouter()
+	dbConn, err := db.ConnectDB()
+
+	if err != nil {
+		logger.Fatal(context.Background(), "Failed to connect to Database. Closing server...", err)
+	}
+
+	routes := InitRouter(dbConn)
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("validateBirthDate", helpers.IsDateBefore)
@@ -44,9 +45,9 @@ func main() {
 		config.AppConfig.HttpPort),
 		nil)
 
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 
 	if err != nil {
-		logger.Fatal(context.TODO(), "Failed to start server, error:", err)
+		logger.Fatal(context.Background(), "Failed to start server, error:", err)
 	}
 }
