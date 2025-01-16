@@ -15,9 +15,18 @@ import (
 
 func HttpLogger(log *zerolog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		requestId := xid.New().String()
 		start := time.Now()
 
-		requestId := xid.New().String()
+		defer func() error {
+			if r := recover(); r != nil {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+					"message":   "Something went wrong!",
+					"requestId": requestId,
+				})
+			}
+			return nil
+		}()
 
 		log := log.With().Str("requestId", requestId).Logger()
 
